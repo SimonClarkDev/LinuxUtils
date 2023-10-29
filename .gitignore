@@ -1,32 +1,10 @@
-# Prerequisites
-*.d
+# Eclipse project files
+.cproject
+.project
+.settings/
+readme.md
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
+# CMake build files
+build/
+Debug/
+Release/
