@@ -39,10 +39,28 @@ public:
 	FileObject () noexcept;
 	virtual ~FileObject () noexcept;
 
-	FileObject (const FileObject& from) = delete;
-	FileObject (const FileObject&& from) = delete;
-	FileObject& operator = (const FileObject& from) = delete;
-	FileObject& operator = (const FileObject&& from) = delete;
+	FileObject (const FileObject& from)
+	{
+		operator = (from);
+	}
+	FileObject (FileObject&& from)
+	{
+		operator = (from);
+	}
+	FileObject& operator = (const FileObject& from)
+	{
+		m_handleId = from.m_handleId;
+		m_pathName = from.m_pathName;
+		return *this;
+	}
+	FileObject& operator = (FileObject&& from)
+	{
+		m_handleId = from.m_handleId;
+		m_pathName = from.m_pathName;
+		from.m_handleId = INVALID_HANDLE_VALUE;
+		from.m_pathName = "";
+		return *this;
+	}
 
 	bool IsOpen () const noexcept {return m_handleId != INVALID_HANDLE_VALUE;}
 	bool Create (const std::string& pathName, mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH) noexcept;

@@ -38,9 +38,9 @@ public:
 	virtual ~FileInfo () = default;
 
 	FileInfo (const FileInfo& from) = delete;
-	FileInfo (const FileInfo&& from) = delete;
+	FileInfo (FileInfo&& from) = delete;
 	FileInfo& operator = (const FileInfo& from) = delete;
-	FileInfo& operator = (const FileInfo&& from) = delete;
+	FileInfo& operator = (FileInfo&& from) = delete;
 
 	FileInfo (const std::string& filePath) noexcept;
 	bool Attach (const std::string& filePath) noexcept;

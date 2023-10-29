@@ -21,7 +21,7 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 /// THE SOFTWARE.
 
-#include "../Include/Thread.h"
+#include "Thread.h"
 
 #include "spdlog/spdlog.h"
 #include <chrono>

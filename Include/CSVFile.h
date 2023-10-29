@@ -24,8 +24,8 @@
 #ifndef _CSV_FILE_H_
 #define _CSV_FILE_H_
 
-#include "../Include/CSVCore.h"
-#include "../Include/FileObject.h"
+#include "CSVCore.h"
+#include "FileObject.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 ///

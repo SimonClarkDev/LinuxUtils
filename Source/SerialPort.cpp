@@ -27,7 +27,7 @@
 // https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/
 //
 
-#include "../Include/SerialPort.h"
+#include "SerialPort.h"
 
 #include "spdlog/spdlog.h"
 

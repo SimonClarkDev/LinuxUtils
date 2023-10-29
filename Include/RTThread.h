@@ -24,8 +24,8 @@
 #ifndef _RTTHREAD_H_
 #define _RTTHREAD_H_
 
-#include "../Include/Clock.h"
-#include "../Include/Thread.h"
+#include "Clock.h"
+#include "Thread.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 ///

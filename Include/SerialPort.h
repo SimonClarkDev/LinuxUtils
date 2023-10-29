@@ -26,7 +26,7 @@
 
 #include <string>
 
-#include "../Include/FileObject.h"
+#include "FileObject.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 /// <summary>

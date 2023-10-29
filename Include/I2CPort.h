@@ -26,7 +26,7 @@
 
 #include <string>
 
-#include "../Include/FileObject.h"
+#include "FileObject.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 /// <summary>
@@ -38,12 +38,12 @@ class I2CPort : public FileObject
 public:
 
 	I2CPort () = default;
-	virtual ~I2CPort () noexcept;
+	virtual ~I2CPort () = default;
 
-	I2CPort (const I2CPort& from) = delete;
-	I2CPort (const I2CPort&& from) = delete;
-	I2CPort& operator = (const I2CPort& from) = delete;
-	I2CPort& operator = (const I2CPort&& from) = delete;
+	I2CPort (const I2CPort& from) = default;
+	I2CPort (I2CPort&& from) = default;
+	I2CPort& operator = (const I2CPort& from) = default;
+	I2CPort& operator = (I2CPort&& from) = default;
 
 	bool Open (const std::string& pathName, uint8_t slaveAddress);
 };
