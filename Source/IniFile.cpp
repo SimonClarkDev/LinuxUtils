@@ -95,49 +95,18 @@ bool IniFile::GetItemValueAsTime (const std::string& sectionName, const std::str
 
 bool IniFile::ReadIniFile (const std::string& path)
 {
-	FileObject iniFile;
+	ASCIIFileObject iniFile;
 
 	if (!iniFile.Open (path)) return false;
 
-	while (true)
+	std::string nextLine;
+
+	while (iniFile.ReadNextLine (nextLine))
 	{
-		std::string nextLine = ReadNextLine (iniFile);
-
-		if (nextLine.length () == 0)
-		{
-			return true;
-		}
-
 		ParseNextLine (nextLine);
 	}
 
 	return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//
-
-std::string IniFile::ReadNextLine (FileObject& file) noexcept
-{
-	uint8_t nextByte = 0;
-	std::string nextLine;
-
-	while (file.Read (&nextByte, 1) != 0)
-	{
-		if (nextByte == CarriageReturn || nextByte == LineFeed)
-		{
-			if (!nextLine.empty ())
-			{
-				return nextLine;
-			}
-		}
-		else
-		{
-			nextLine += static_cast<char>(nextByte);
-		}
-	}
-
-	return nextLine;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

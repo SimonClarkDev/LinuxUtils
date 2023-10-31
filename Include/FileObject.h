@@ -29,7 +29,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 /// <summary>
-/// File object class
+/// Core file based object class
 /// </summary>
 
 class FileObject
@@ -64,8 +64,8 @@ public:
 
 	bool IsOpen () const noexcept {return m_handleId != INVALID_HANDLE_VALUE;}
 	bool Create (const std::string& pathName, mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH) noexcept;
-	bool Open (const std::string& pathName, bool append = false) noexcept;
-	bool Write (const uint8_t* pBuffer, ssize_t length) const noexcept;
+	bool Open (const std::string& pathName, bool appendOnly = false) noexcept;
+	bool Write (const uint8_t* pBuffer, size_t length) const noexcept;
 	size_t Read (uint8_t* pBuffer, size_t length) noexcept;
 	bool SeekEnd () noexcept;
 	void Close () noexcept;
@@ -76,6 +76,26 @@ protected:
 
 	std::string		m_pathName;
 	int32_t			m_handleId;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// <summary>
+/// ASCII file based object class
+/// </summary>
+
+class ASCIIFileObject : public FileObject
+{
+public:
+
+	bool WriteString (const std::string_view& writeString) noexcept;
+	bool WriteNewLine () noexcept;
+	bool ReadNextLine (std::string& nextLine) noexcept;
+
+private:
+
+	static constexpr char CarriageReturn = '\r';
+	static constexpr char LineFeed = '\n';
+	static constexpr const char* NewLineString = "\r\n";
 };
 
 #endif

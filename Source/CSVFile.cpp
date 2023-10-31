@@ -21,12 +21,13 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 /// THE SOFTWARE.
 
-#include "CSVFile.h"
+#include <CSVFile.h>
+#include <algorithm>
 
 /////////////////////////////////////////////////////////////////////////////////
 ///
 
-bool CSVFile::Open (const std::string& filePath, bool append) noexcept
+bool CSVWriter::Open (const std::string& filePath, bool append) noexcept
 {
 	if (append)
 	{
@@ -39,11 +40,11 @@ bool CSVFile::Open (const std::string& filePath, bool append) noexcept
 /////////////////////////////////////////////////////////////////////////////////
 ///
 
-void CSVFile::Close (bool flush) noexcept
+void CSVWriter::Close (bool flush) noexcept
 {
 	if (m_columnCollection.Length () > 0 && flush)
 	{
-		Write ();
+		WriteLine ();
 	}
 
 	m_fileObject.Close ();
@@ -52,37 +53,103 @@ void CSVFile::Close (bool flush) noexcept
 /////////////////////////////////////////////////////////////////////////////////
 ///
 
-void CSVFile::WriteHeader () noexcept
+void CSVWriter::WriteHeader () noexcept
 {
 	m_columnCollection.SetFixedColumns ();
 
 	for (uint32_t index = 0; index < m_columnCollection.Length (); ++index)
 	{
-		if (index != 0) m_fileObject.Write (reinterpret_cast<const uint8_t*>(commaSep), sizeof (commaSep) - 1);
-
-		std::string formattedText = m_columnCollection[index].GetName ();
-		m_fileObject.Write ((const uint8_t*)formattedText.c_str (), formattedText.length ());
+		if (index != 0) m_fileObject.WriteString (CommaSeparator);
+		m_fileObject.WriteString (m_columnCollection[index].GetName ());
 	}
 
-	m_fileObject.Write ((uint8_t*)newLine, sizeof (newLine) - 1);
+	m_fileObject.WriteNewLine ();
 }
 
 /////////////////////////////////////////////////////////////////////////////////
 ///
 
-void CSVFile::Write () noexcept
+bool CSVWriter::WriteLine () noexcept
 {
+	bool writeValid = true;
 	m_columnCollection.SetFixedColumns ();
 
-	for (uint32_t index = 0; index < m_columnCollection.Length (); ++index)
+	for (uint32_t index = 0; index < m_columnCollection.Length () && writeValid; ++index)
 	{
-		if (index != 0) m_fileObject.Write (reinterpret_cast<const uint8_t*>(commaSep), sizeof (commaSep) - 1);
-
-		std::string formattedText = m_columnCollection[index].GetFormattedText ();
-		m_fileObject.Write ((const uint8_t*)formattedText.c_str (), formattedText.length ());
+		if (index != 0)
+		{
+			m_fileObject.WriteString (CommaSeparator);
+		}
+		m_fileObject.WriteString (m_columnCollection[index].GetFormattedText ());
 	}
 
-	m_fileObject.Write ((uint8_t*)newLine, sizeof (newLine) - 1);
+	if (writeValid)
+	{
+		m_fileObject.WriteNewLine ();
+		ClearLine ();
+	}
 
-	ClearLine ();
+	return writeValid;
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+///
+
+bool CSVReader::Open (const std::string& filePath) noexcept
+{
+	return m_fileObject.Open (filePath);
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+///
+
+void CSVReader::Close () noexcept
+{
+	m_fileObject.Close ();
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+///
+
+bool CSVReader::ReadHeader () noexcept
+{
+	if (ReadLine ())
+	{
+		for (uint32_t index = 0; index < m_columnCollection.Length (); ++index)
+		{
+			m_columnCollection.GetAt (index).SetName (m_columnCollection.GetAt (index).GetFormattedText ());
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+///
+
+bool CSVReader::ReadLine () noexcept
+{
+	std::string nextLine;
+	bool readValid = m_fileObject.ReadNextLine (nextLine);
+	nextLine.erase (std::remove_if (nextLine.begin (), nextLine.end (), isspace), nextLine.end ());
+
+	m_columnCollection.ClearAll ();
+	uint32_t lastOffset = 0;
+
+	for (uint32_t index = 0; index < m_columnCollection.Length () && lastOffset < nextLine.length (); ++index)
+	{
+		size_t nextOffset = nextLine.find (Comma, lastOffset);
+
+		if (nextOffset == std::string::npos)
+		{
+			nextOffset = nextLine.length ();
+		}
+
+		SetFormattedAt (index, nextLine.substr (lastOffset, nextOffset - lastOffset));
+		lastOffset = nextOffset + 1;
+	}
+
+	return readValid;
 }

@@ -30,29 +30,61 @@
 ////////////////////////////////////////////////////////////////////////////////
 ///
 
-class CSVFile : public CSVCore
+class CSVWriter : public CSVCore
 {
 public:
 
-	CSVFile () = default;
-	virtual ~CSVFile () = default;
+	CSVWriter (CSVColumnCollection& columnCollection) : CSVCore (columnCollection)
+	{
+	}
+	virtual ~CSVWriter () = default;
 
-	CSVFile (const CSVFile& from) = delete;
-	CSVFile (const CSVFile&& from) = delete;
-	CSVFile& operator = (const CSVFile& from);
-	CSVFile& operator = (const CSVFile&& from) = delete;
+	CSVWriter (const CSVWriter& from) = delete;
+	CSVWriter (const CSVWriter&& from) = delete;
+	CSVWriter& operator = (const CSVWriter& from);
+	CSVWriter& operator = (const CSVWriter&& from) = delete;
 
 	bool Open (const std::string& filePath, bool append = true) noexcept;
-	void WriteHeader () noexcept;
-	void Write () noexcept;
 	void Close (bool flush = false) noexcept;
+
+	void WriteHeader () noexcept;
+	bool WriteLine () noexcept;
 
 private:
 
-	static constexpr const char* commaSep = ", ";
-	static constexpr const char* newLine = "\r\n";
+	static constexpr const std::string_view CommaSeparator = ", ";
 
-	FileObject	m_fileObject;
+	ASCIIFileObject	m_fileObject;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+///
+
+class CSVReader : public CSVCore
+{
+public:
+
+	CSVReader (CSVColumnCollection& columnCollection) : CSVCore (columnCollection)
+	{
+	}
+	virtual ~CSVReader () = default;
+
+	CSVReader (const CSVReader& from) = delete;
+	CSVReader (const CSVReader&& from) = delete;
+	CSVReader& operator = (const CSVReader& from);
+	CSVReader& operator = (const CSVReader&& from) = delete;
+
+	bool Open (const std::string& filePath) noexcept;
+	void Close () noexcept;
+
+	bool ReadHeader () noexcept;
+	bool ReadLine () noexcept;
+
+private:
+
+	static constexpr const char Comma = ',';
+
+	ASCIIFileObject	m_fileObject;
 };
 
 #endif

@@ -38,15 +38,11 @@ public:
 
 	enum class Type {Date, Time, Row, String, Int, Float};
 
-	CSVColumn (Type type, std::string columnName, uint8_t width = 0,
-		uint8_t precision = 0, bool leftJustified = false);
+	CSVColumn (Type type, std::string columnName = "",
+		uint8_t width = 0, uint8_t precision = 0, bool leftJustified = false);
+	CSVColumn (const CSVColumn& from) { operator = (from); }
 
 	virtual ~CSVColumn () = default;
-
-	CSVColumn (const CSVColumn& from)
-	{
-		operator = (from);
-	}
 
 	CSVColumn (const CSVColumn&& from) = delete;
 	CSVColumn& operator = (const CSVColumn& from);
@@ -57,14 +53,15 @@ public:
 	void Format (float value);
 	void FormatFixed (uint32_t rowNumber);
 
-	const std::string& GetFormattedText (void) {return m_formattedText;}
+	const std::string& GetFormattedText () const noexcept {return m_formattedText;}
+	const std::string& GetName () const noexcept {return m_columnName;}
+	uint8_t GetPrecision () const noexcept {return m_precision;}
+	uint8_t GetWidth () const noexcept {return m_width;}
+	Type GetType () const noexcept {return m_type;}
 
-	uint8_t GetPrecision (void) {return m_precision;}
-	std::string GetName (void) {return m_columnName;}
-	uint8_t GetWidth (void) {return m_width;}
-	Type GetType (void) {return m_type;}
-
-	void Clear (void) { m_formattedText = ""; }
+	void SetName (const std::string& columnName) noexcept { m_columnName = columnName; }
+	void SetFormattedText (const std::string& formattedText) noexcept { m_formattedText = formattedText; }
+	void Clear () noexcept { m_formattedText.clear (); }
 
 private:
 
@@ -148,7 +145,8 @@ class CSVCore
 {
 public:
 
-	CSVCore ()
+	CSVCore (CSVColumnCollection& columnCollection) :
+		m_columnCollection (columnCollection)
 	{
 		ClearLine ();
 	}
@@ -159,8 +157,6 @@ public:
 	CSVCore (const CSVCore&& from) = delete;
 	CSVCore& operator = (const CSVCore& from) = delete;
 	CSVCore& operator = (const CSVCore&& from) = delete;
-
-	virtual void Write () = 0;
 
 	void SetStringAt (uint8_t index, const std::string& text)
 	{
@@ -180,9 +176,10 @@ public:
 		m_columnCollection.GetAt (index).Format (value);
 	}
 
-	void Attach (CSVColumnCollection& columnCollection)
+	void SetFormattedAt (uint8_t index, const std::string& text)
 	{
-		m_columnCollection = columnCollection;
+		if (index >= m_columnCollection.Columns ()) return;
+		m_columnCollection.GetAt (index).SetFormattedText (text);
 	}
 
 protected:
@@ -192,7 +189,7 @@ protected:
 		m_columnCollection.ClearAll ();
 	}
 
-	CSVColumnCollection	m_columnCollection;
+	CSVColumnCollection& m_columnCollection;
 };
 
 #endif
