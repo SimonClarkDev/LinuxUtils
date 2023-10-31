@@ -139,10 +139,7 @@ private:
 	static constexpr char SectionNameOpen = '[';
 	static constexpr char SectionNameClose = ']';
 	static constexpr char ItemAssignment = '=';
-	static constexpr char CarriageReturn = '\r';
-	static constexpr char LineFeed = '\n';
 
-	std::string ReadNextLine (FileObject& file) noexcept;
 	void ParseNextLine (std::string& line) noexcept;
 
 	std::vector<IniSection> m_vectorOfSections;

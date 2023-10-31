@@ -69,11 +69,11 @@ void FileObject::Close () noexcept
 ////////////////////////////////////////////////////////////////////////////////
 ///
 
-bool FileObject::Open (const std::string& pathName, bool append) noexcept
+bool FileObject::Open (const std::string& pathName, bool appendOnly) noexcept
 {
 	Close ();
 
-	m_handleId = open (pathName.c_str (), ((append) ? O_APPEND|O_WRONLY : O_RDWR));
+	m_handleId = open (pathName.c_str (), ((appendOnly) ? O_APPEND|O_WRONLY : O_RDWR));
 	if (m_handleId < 0)
 	{
 		spdlog::error ("Failed to open {0} with error number {1}", pathName, errno);
@@ -111,7 +111,7 @@ bool FileObject::Create (const std::string& pathName, mode_t mode) noexcept
 ////////////////////////////////////////////////////////////////////////////////
 ///
 
-bool FileObject::Write (const uint8_t* pBuffer, ssize_t length) const noexcept
+bool FileObject::Write (const uint8_t* pBuffer, size_t length) const noexcept
 {
 	if (length == 0)
 	{
@@ -123,7 +123,7 @@ bool FileObject::Write (const uint8_t* pBuffer, ssize_t length) const noexcept
 
 	ssize_t bytesWritten = 0;
 
-	while (bytesWritten < length && bytesWritten != -1)
+	while (bytesWritten < static_cast<ssize_t>(length) && bytesWritten != -1)
 	{
 		bytesWritten += write (m_handleId, &pBuffer[bytesWritten], length - bytesWritten);
 	}
@@ -173,6 +173,47 @@ bool FileObject::SeekEnd () noexcept
 		return false;
 	}
 
-	spdlog::trace ("Seeked to end of {0}", m_pathName);
+	spdlog::trace ("Seek to end of {0}", m_pathName);
 	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+///
+
+bool ASCIIFileObject::ReadNextLine (std::string& nextLine) noexcept
+{
+	uint8_t nextByte = 0;
+
+	while (Read (&nextByte, 1) != 0)
+	{
+		if (nextByte == CarriageReturn || nextByte == LineFeed)
+		{
+			if (!nextLine.empty ())
+			{
+				return true;
+			}
+		}
+		else
+		{
+			nextLine += static_cast<char>(nextByte);
+		}
+	}
+
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+///
+
+bool ASCIIFileObject::WriteString (const std::string_view& writeString) noexcept
+{
+	return Write (reinterpret_cast<const uint8_t*>(writeString.data ()), writeString.length ());
+}
+
+////////////////////////////////////////////////////////////////////////////////
+///
+
+bool ASCIIFileObject::WriteNewLine () noexcept
+{
+	return Write (reinterpret_cast<const uint8_t*>(NewLineString), sizeof (NewLineString) - 1);
 }
