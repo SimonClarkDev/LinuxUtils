@@ -53,7 +53,11 @@ public:
 	void Format (float value);
 	void FormatFixed (uint32_t rowNumber);
 
-	const std::string& GetFormattedText () const noexcept {return m_formattedText;}
+	double GetValueAsDouble () const noexcept;
+	float GetValueAsFloat () const noexcept;
+	int GetValueAsInt () const noexcept;
+
+	const std::string& GetValueAsText () const noexcept {return m_formattedText;}
 	const std::string& GetName () const noexcept {return m_columnName;}
 	uint8_t GetPrecision () const noexcept {return m_precision;}
 	uint8_t GetWidth () const noexcept {return m_width;}
