@@ -80,7 +80,7 @@ bool CSVWriter::WriteLine () noexcept
 		{
 			m_fileObject.WriteString (CommaSeparator);
 		}
-		m_fileObject.WriteString (m_columnCollection[index].GetFormattedText ());
+		m_fileObject.WriteString (m_columnCollection[index].GetValueAsText ());
 	}
 
 	if (writeValid)
@@ -117,7 +117,7 @@ bool CSVReader::ReadHeader () noexcept
 	{
 		for (uint32_t index = 0; index < m_columnCollection.Length (); ++index)
 		{
-			m_columnCollection.GetAt (index).SetName (m_columnCollection.GetAt (index).GetFormattedText ());
+			m_columnCollection.GetAt (index).SetName (m_columnCollection.GetAt (index).GetValueAsText ());
 		}
 
 		return true;
