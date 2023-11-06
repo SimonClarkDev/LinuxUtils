@@ -81,7 +81,7 @@ void CSVColumn::Format (int32_t value)
 {
 	if (value == 0)
 	{
-		m_formattedText = "0";
+		m_formattedText = std::string ("0");
 		return;
 	}
 
