@@ -45,33 +45,41 @@ void IniFile::AddSection (const IniSection& newSection)
 ////////////////////////////////////////////////////////////////////////////////
 //
 
-int32_t IniFile::GetItemValueAsInt (const std::string& sectionName, const std::string& entryName) const noexcept
+int32_t IniFile::GetItemValueAsInt (const std::string& sectionName, const std::string& entryName, int32_t defaultValue) const noexcept
 {
 	for (const IniSection& nextSection : m_vectorOfSections)
 	{
 		if (nextSection.GetSectionName () == sectionName)
 		{
-			return nextSection.GetItemValueAsInt (entryName);
+			int32_t foundValue;
+			if (nextSection.GetItemValueAsInt (entryName, foundValue))
+			{
+				return foundValue;
+			}
 		}
 	}
 
-	return 0;
+	return defaultValue;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 
-std::string IniFile::GetItemValueAsString (const std::string& sectionName, const std::string& entryName) const noexcept
+std::string IniFile::GetItemValueAsString (const std::string& sectionName, const std::string& entryName, const std::string& defautlValue) const noexcept
 {
 	for (const IniSection& nextSection : m_vectorOfSections)
 	{
 		if (nextSection.GetSectionName () == sectionName)
 		{
-			return nextSection.GetItemValueAsString (entryName);
+			std::string foundValue;
+			if (nextSection.GetItemValueAsString (entryName, foundValue))
+			{
+				return foundValue;
+			}
 		}
 	}
 
-	return "";
+	return defautlValue;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -165,26 +173,34 @@ void IniSection::SetItemValue (const std::string& name, const std::string& value
 ////////////////////////////////////////////////////////////////////////////////
 //
 
-std::string IniSection::GetItemValueAsString (const std::string &name) const noexcept
+bool IniSection::GetItemValueAsString (const std::string &name, std::string& result) const noexcept
 {
 	for (const IniItem& item : m_vectorOfItems)
 	{
 		if (item.GetName () == name)
 		{
-			return item.GetValue ();
+			result = item.GetValue ();
+			return true;
 		}
 	}
 
-	return "";
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 
-int32_t IniSection::GetItemValueAsInt (const std::string &name) const noexcept
+bool IniSection::GetItemValueAsInt (const std::string &name, int32_t& result) const noexcept
 {
-	std::string value = GetItemValueAsString (name);
-	return static_cast<int32_t>(std::stoi (value));
+	std::string value;
+	if (GetItemValueAsString (name, value))
+	{
+		if (!IniItem::IsNumeric (value)) return false;
+		result = static_cast<int32_t>(std::stoi (value));
+		return true;
+	}
+
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -192,18 +208,37 @@ int32_t IniSection::GetItemValueAsInt (const std::string &name) const noexcept
 
 bool IniSection::GetItemValueAsTime (const std::string& name, uint8_t& hours, uint8_t& minutes, uint8_t& seconds) const noexcept
 {
-	std::string asciiTime = GetItemValueAsString (name);
+	std::string asciiTime;
 
+	if (!GetItemValueAsString (name, asciiTime)) return false;
 	if (asciiTime.length () != 8) return false;
 	if (asciiTime[HourToMinuteColonOffset] != TimeColon ||
 		asciiTime[MinuteToSecondColonOffset] != TimeColon) return false;
 
-	hours = static_cast<uint8_t>(std::stoi (asciiTime.substr (0, 2)));
-	minutes = static_cast<uint8_t>(std::stoi (asciiTime.substr (3, 2)));
-	seconds = static_cast<uint8_t>(std::stoi (asciiTime.substr (6, 2)));
+	std::string asciiHours = asciiTime.substr (0, 2);
+	std::string asciiMinutes = asciiTime.substr (3, 2);
+	std::string asciiSeconds = asciiTime.substr (6, 2);
+
+	if (!IniItem::IsNumeric(asciiHours)) return false;
+	if (!IniItem::IsNumeric(asciiMinutes)) return false;
+	if (!IniItem::IsNumeric(asciiSeconds)) return false;
+
+	hours = static_cast<uint8_t>(std::stoi (asciiHours));
+	minutes = static_cast<uint8_t>(std::stoi (asciiMinutes));
+	seconds = static_cast<uint8_t>(std::stoi (asciiSeconds));
 
 	if (hours > 23) return false;
 	if (minutes > 59) return false;
 	if (seconds > 59) return false;
 	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+
+bool IniItem::IsNumeric (const std::string& value) noexcept
+{
+    for (char const &character : value)
+        if (!std::isdigit (character)) return false;
+    return true;
 }
