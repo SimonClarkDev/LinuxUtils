@@ -24,8 +24,6 @@
 #ifndef _SPI_PORT_H_
 #define _SPI_PORT_H_
 
-#include <vector>
-
 #include "FileObject.h"
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -37,7 +35,9 @@ class SPIPort : public FileObject
 {
 public:
 
-	SPIPort ();
+	enum class Mode {MODE_0, MODE_1, MODE_2, MODE_3};
+
+	SPIPort () = default;
 	virtual ~SPIPort () = default;
 
 	SPIPort (const SPIPort& from) = default;
@@ -45,7 +45,9 @@ public:
 	SPIPort& operator = (const SPIPort& from) = default;
 	SPIPort& operator = (SPIPort&& from) = default;
 
-	bool Open (const std::string& pathName, uint32_t speed = 1000000) noexcept;
+	bool Initialise (uint32_t speedInHz = 1000000, SPIPort::Mode mode = SPIPort::Mode::MODE_1, uint32_t bitPerWord = 8) noexcept;
+
+	bool Open (const std::string& pathName) noexcept;
 	bool Write (const uint8_t* pBuffer, size_t length) noexcept;
 	size_t Read (uint8_t* pBuffer, size_t length) noexcept;
 
@@ -54,7 +56,6 @@ private:
 	static constexpr uint32_t MAX_BUFFER_SIZE = 16;
 
 	uint8_t m_recvBuffer[MAX_BUFFER_SIZE];
-	uint32_t m_sentBytes;
 };
 
 #endif

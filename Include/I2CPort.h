@@ -45,7 +45,11 @@ public:
 	I2CPort& operator = (const I2CPort& from) = default;
 	I2CPort& operator = (I2CPort&& from) = default;
 
-	bool Open (const std::string& pathName, uint8_t slaveAddress);
+	bool Open (const std::string& pathName, uint8_t slaveAddress) noexcept;
+	bool ReadByte (uint8_t baseAddress, uint8_t& readData) noexcept;
+	bool ReadWord (uint8_t baseAddress, uint16_t& readData) noexcept;
+	bool WriteByte (uint8_t baseAddress, uint8_t writeData) noexcept;
+	bool WriteWord (uint8_t baseAddress, uint16_t writeData) noexcept;
 };
 
 #endif

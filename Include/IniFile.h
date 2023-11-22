@@ -59,6 +59,8 @@ public:
 		return *this;
 	}
 
+	static bool IsNumeric (const std::string& value) noexcept;
+
 	std::string GetName () const noexcept { return m_name; }
 	std::string GetValue () const noexcept { return m_value; }
 
@@ -97,9 +99,9 @@ public:
 	}
 
 	void SetItemValue (const std::string& name, const std::string& value) noexcept;
-	std::string GetItemValueAsString (const std::string& name) const noexcept;
+	bool GetItemValueAsString (const std::string& name, std::string& result) const noexcept;
 	bool GetItemValueAsTime (const std::string& name, uint8_t& hours, uint8_t& minutes, uint8_t& seconds) const noexcept;
-	int32_t GetItemValueAsInt (const std::string& name) const noexcept;
+	bool GetItemValueAsInt (const std::string &name, int32_t& result) const noexcept;
 
 	std::string GetSectionName () const noexcept { return m_sectionName; }
 
@@ -130,8 +132,8 @@ public:
 	void AddSection (const IniSection& newSection);
 	bool ReadIniFile (const std::string& path);
 
-	std::string GetItemValueAsString (const std::string& sectionName, const std::string& entryName) const noexcept;
-	int32_t GetItemValueAsInt (const std::string& sectionName, const std::string& entryName) const noexcept;
+	std::string GetItemValueAsString (const std::string& sectionName, const std::string& entryName, const std::string& defaultValue = "") const noexcept;
+	int32_t GetItemValueAsInt (const std::string& sectionName, const std::string& entryName, int32_t defaultValue = 0) const noexcept;
 	bool GetItemValueAsTime (const std::string& sectionName, const std::string& entryName, uint8_t& hours, uint8_t& minutes, uint8_t& seconds) const noexcept;
 
 private:

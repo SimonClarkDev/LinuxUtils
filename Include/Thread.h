@@ -24,8 +24,9 @@
 #ifndef _THREAD_H_
 #define _THREAD_H_
 
-#include <thread>
 #include <string>
+#include <thread>
+#include <mutex>
 
 /////////////////////////////////////////////////////////////////////////////////
 //
@@ -90,6 +91,31 @@ public:
 
 	virtual TaskAction ThreadMethodB (void) noexcept = 0;
 	virtual TaskAction ThreadMethod (void) noexcept { return ThreadMethodB (); }
+};
+
+/////////////////////////////////////////////////////////////////////////////////
+//
+
+class AutoLock
+{
+	std::mutex& m_autoMutex;
+
+public:
+
+	AutoLock (std::mutex& autoMutex) : m_autoMutex (autoMutex)
+	{
+		autoMutex.lock ();
+	}
+	virtual ~AutoLock ()
+	{
+		m_autoMutex.unlock ();
+	}
+
+	AutoLock () = delete;
+	AutoLock (const AutoLock& from) = delete;
+	AutoLock (AutoLock&& from) = delete;
+	AutoLock& operator = (const AutoLock& from) = delete;
+	AutoLock& operator = (AutoLock&& from) = delete;
 };
 
 #endif
