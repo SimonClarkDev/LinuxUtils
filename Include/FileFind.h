@@ -30,36 +30,41 @@
 ////////////////////////////////////////////////////////////////////////////////
 ///
 
-class FileFind
+namespace spc
 {
-public:
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-	FileFind ();
-	virtual ~FileFind ();
+	class FileFind
+	{
+	public:
 
-	FileFind (const FileFind& from) = delete;
-	FileFind (const FileFind&& from) = delete;
-	FileFind& operator = (const FileFind& from) = delete;
-	FileFind& operator = (const FileFind&& from) = delete;
+		FileFind ();
+		virtual ~FileFind ();
 
-	enum class FindType {Unknown, Directory, SymbolicLink, RegularFile};
+		FileFind (const FileFind& from) = delete;
+		FileFind (FileFind&& from) = delete;
+		FileFind& operator = (const FileFind& from) = delete;
+		FileFind& operator = (FileFind&& from) = delete;
 
-	bool IsOpen () const noexcept { return m_pDirectory != nullptr; }
-	FindType Type () const noexcept { return m_type; }
-	std::string Name () const noexcept { return m_name; }
+		enum class FindType {Unknown, Directory, SymbolicLink, RegularFile};
 
-	bool Open (const std::string& path = ".");
-	void Close ();
-	bool Next (bool includeHierarchy = false);
+		[[nodiscard]] bool IsOpen () const noexcept { return m_pDirectory != nullptr; }
+		[[nodiscard]] FindType Type () const noexcept { return m_type; }
+		[[nodiscard]] std::string Name () const noexcept { return m_name; }
+		[[nodiscard]] bool Open (const std::string& path = ".") noexcept;
+		[[nodiscard]] bool Next (bool includeHierarchy = false) noexcept;
+		[[nodiscard]] std::string Path () const noexcept;
 
-	std::string Path ();
+		void Close () noexcept;
 
-private:
+	private:
 
-	DIR*		m_pDirectory;
-	FindType	m_type;
-	std::string	m_name;
-	std::string m_path;
-};
+		DIR*		m_pDirectory;
+		FindType	m_type;
+		std::string	m_name;
+		std::string m_path;
+	};
+}
 
 #endif

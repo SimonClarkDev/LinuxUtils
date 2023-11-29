@@ -26,36 +26,42 @@
 ////////////////////////////////////////////////////////////////////////////////
 ///
 
-FileInfo::FileInfo () :
-	m_fileStatus ({}),
-	m_filePath ("")
+namespace spc
 {
-}
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-////////////////////////////////////////////////////////////////////////////////
-///
+	FileInfo::FileInfo () :
+		m_fileStatus ({}),
+		m_filePath ("")
+	{
+	}
 
-FileInfo::FileInfo (const std::string& filePath) noexcept :
-	m_fileStatus ({}),
-	m_filePath ("")
-{
-	Attach (filePath);
-}
+	////////////////////////////////////////////////////////////////////////////////
+	///
 
-////////////////////////////////////////////////////////////////////////////////
-///
+	FileInfo::FileInfo (const std::string& filePath) noexcept :
+		m_fileStatus ({}),
+		m_filePath ("")
+	{
+		Attach (filePath);
+	}
 
-bool FileInfo::Attach (const std::string& filePath) noexcept
-{
-	m_filePath = filePath;
-	return Refresh ();
-}
+	////////////////////////////////////////////////////////////////////////////////
+	///
 
-////////////////////////////////////////////////////////////////////////////////
-///
+	bool FileInfo::Attach (const std::string& filePath) noexcept
+	{
+		m_filePath = filePath;
+		return Refresh ();
+	}
 
-bool FileInfo::Refresh ()
-{
-	if (m_filePath.length () == 0) return false;
-	return (stat (m_filePath.c_str (), &m_fileStatus) != 0);
+	////////////////////////////////////////////////////////////////////////////////
+	///
+
+	bool FileInfo::Refresh ()
+	{
+		if (m_filePath.length () == 0) return false;
+		return (stat (m_filePath.c_str (), &m_fileStatus) != 0);
+	}
 }

@@ -26,93 +26,99 @@
 #include "spdlog/spdlog.h"
 #include <chrono>
 
-/////////////////////////////////////////////////////////////////////////////////
-//
+////////////////////////////////////////////////////////////////////////////////
+///
 
-Thread::Thread (const std::string& threadName, uint32_t threadDelayus) noexcept :
-	m_threadDelayus (threadDelayus),
-	m_threadName (threadName),
-	m_running (false),
-	m_stopped (true)
+namespace spc
 {
-}
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-
-Thread::~Thread ()
-{
-	StopExecution ();
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-//
-
-void Thread::StartExecution ()
-{
-	if (m_running)
+	Thread::Thread (const std::string& threadName, uint32_t threadDelayus) noexcept :
+		m_threadDelayus (threadDelayus),
+		m_threadName (threadName),
+		m_running (false),
+		m_stopped (true)
 	{
-		spdlog::error ("Thread {0} already running", m_threadName);
-		return;
 	}
 
-	m_thread = std::thread (&Thread::ThreadWrapper, this);
-}
+	////////////////////////////////////////////////////////////////////////////
+	//
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-
-void Thread::Sleep (uint32_t delayms) noexcept
-{
-	usleep (delayms * 1000);
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-//
-
-void Thread::StopExecution ()
-{
-	m_running = false;
-	while (!m_stopped) usleep (StoppingWaitus);
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-//
-
-void Thread::ThreadWrapper ()
-{
-	m_stopped = false;
-	m_running = true;
-
-	spdlog::trace ("Thread {0} starting", m_threadName);
-	ThreadStart ();
-	spdlog::trace ("Thread {0} started", m_threadName);
-
-	std::chrono::duration<long int, std::micro> threadWaitDelay (m_threadDelayus);
-	auto expectedEndTime = std::chrono::high_resolution_clock::now ();
-
-	while (m_running)
+	Thread::~Thread ()
 	{
-		if (ThreadMethod () == TaskAction::Wait)
-		{
-			auto currentTime = std::chrono::high_resolution_clock::now ();
-			expectedEndTime += threadWaitDelay;
+		StopExecution ();
+	}
 
-			std::chrono::duration<double, std::micro> sleepDuraction = expectedEndTime - currentTime;
-			if (currentTime < expectedEndTime)
+	////////////////////////////////////////////////////////////////////////////
+	//
+
+	void Thread::StartExecution ()
+	{
+		if (m_running)
+		{
+			spdlog::error ("Thread {0} already running", m_threadName);
+			return;
+		}
+
+		m_thread = std::thread (&Thread::ThreadWrapper, this);
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	//
+
+	void Thread::Sleep (uint32_t delayms) noexcept
+	{
+		usleep (delayms * 1000);
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	//
+
+	void Thread::StopExecution ()
+	{
+		m_running = false;
+		while (!m_stopped) usleep (StoppingWaitus);
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	//
+
+	void Thread::ThreadWrapper ()
+	{
+		m_stopped = false;
+		m_running = true;
+
+		spdlog::trace ("Thread {0} starting", m_threadName);
+		ThreadStart ();
+		spdlog::trace ("Thread {0} started", m_threadName);
+
+		std::chrono::duration<long int, std::micro> threadWaitDelay (m_threadDelayus);
+		auto expectedEndTime = std::chrono::high_resolution_clock::now ();
+
+		while (m_running)
+		{
+			if (ThreadMethod () == TaskAction::Wait)
 			{
-				usleep (sleepDuraction.count ());
-			}
-			else
-			{
-				//spdlog::error ("Thread overrun time slice by {}us", std::abs (sleepDuraction.count ()));
+				auto currentTime = std::chrono::high_resolution_clock::now ();
+				expectedEndTime += threadWaitDelay;
+
+				std::chrono::duration<double, std::micro> sleepDuraction = expectedEndTime - currentTime;
+				if (currentTime < expectedEndTime)
+				{
+					usleep (sleepDuraction.count ());
+				}
+				else
+				{
+					//spdlog::error ("Thread overrun time slice by {}us", std::abs (sleepDuraction.count ()));
+				}
 			}
 		}
+
+		spdlog::trace ("Thread {0} stopping", m_threadName);
+		ThreadStop ();
+		spdlog::trace ("Thread {0} stopped", m_threadName);
+
+		m_stopped = true;
 	}
-
-	spdlog::trace ("Thread {0} stopping", m_threadName);
-	ThreadStop ();
-	spdlog::trace ("Thread {0} stopped", m_threadName);
-
-	m_stopped = true;
 }

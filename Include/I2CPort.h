@@ -28,28 +28,34 @@
 
 #include "FileObject.h"
 
-///////////////////////////////////////////////////////////////////////////////
-/// <summary>
-/// I2C port wrapper class
-/// </summary>
+////////////////////////////////////////////////////////////////////////////////
+///
 
-class I2CPort : public FileObject
+namespace spc
 {
-public:
+	////////////////////////////////////////////////////////////////////////////
+	/// <summary>
+	/// I2C port wrapper class
+	/// </summary>
 
-	I2CPort () = default;
-	virtual ~I2CPort () = default;
+	class I2CPort : public FileObject
+	{
+	public:
 
-	I2CPort (const I2CPort& from) = default;
-	I2CPort (I2CPort&& from) = default;
-	I2CPort& operator = (const I2CPort& from) = default;
-	I2CPort& operator = (I2CPort&& from) = default;
+		I2CPort () = default;
+		virtual ~I2CPort () = default;
 
-	bool Open (const std::string& pathName, uint8_t slaveAddress) noexcept;
-	bool ReadByte (uint8_t baseAddress, uint8_t& readData) noexcept;
-	bool ReadWord (uint8_t baseAddress, uint16_t& readData) noexcept;
-	bool WriteByte (uint8_t baseAddress, uint8_t writeData) noexcept;
-	bool WriteWord (uint8_t baseAddress, uint16_t writeData) noexcept;
-};
+		I2CPort (const I2CPort& from) = default;
+		I2CPort (I2CPort&& from) = default;
+		I2CPort& operator = (const I2CPort& from) = default;
+		I2CPort& operator = (I2CPort&& from) = default;
+
+		[[nodiscard]] bool Open (const std::string& pathName, uint8_t slaveAddress) noexcept;
+		[[nodiscard]] bool ReadByte (uint8_t baseAddress, uint8_t& readData) noexcept;
+		[[nodiscard]] bool ReadWord (uint8_t baseAddress, uint16_t& readData) noexcept;
+		[[nodiscard]] bool WriteByte (uint8_t baseAddress, uint8_t writeData) noexcept;
+		[[nodiscard]] bool WriteWord (uint8_t baseAddress, uint16_t writeData) noexcept;
+	};
+}
 
 #endif

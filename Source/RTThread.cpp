@@ -26,34 +26,40 @@
 ////////////////////////////////////////////////////////////////////////////////
 ///
 
-OneSecondThread::OneSecondThread (const std::string& threadName) :
-	Thread (threadName, RealTimeThreadWait),
-	m_clockSeconds (0)
+namespace spc
 {
-}
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-////////////////////////////////////////////////////////////////////////////////
-///
-
-void OneSecondThread::ThreadStart () noexcept
-{
-	m_clock.Now ();
-	m_clockSeconds = 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-///
-
-Thread::TaskAction OneSecondThread::ThreadMethod () noexcept
-{
-	uint32_t elapsedSeconds = m_clock.ElapsedSeconds ();
-
-	if (elapsedSeconds > m_clockSeconds)
+	OneSecondThread::OneSecondThread (const std::string& threadName) :
+		Thread (threadName, RealTimeThreadWait),
+		m_clockSeconds (0)
 	{
-		ClockMethod ();
-
-		m_clockSeconds = elapsedSeconds;
 	}
 
-	return TaskAction::Wait;
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	void OneSecondThread::ThreadStart () noexcept
+	{
+		(void)m_clock.Now ();
+		m_clockSeconds = 0;
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	Thread::TaskAction OneSecondThread::ThreadMethod () noexcept
+	{
+		uint32_t elapsedSeconds = m_clock.ElapsedSeconds ();
+
+		if (elapsedSeconds > m_clockSeconds)
+		{
+			ClockMethod ();
+
+			m_clockSeconds = elapsedSeconds;
+		}
+
+		return TaskAction::Wait;
+	}
 }

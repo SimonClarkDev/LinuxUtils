@@ -30,32 +30,38 @@
 ////////////////////////////////////////////////////////////////////////////////
 ///
 
-class FileInfo
+namespace spc
 {
-public:
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-	FileInfo ();
-	virtual ~FileInfo () = default;
+	class FileInfo
+	{
+	public:
 
-	FileInfo (const FileInfo& from) = delete;
-	FileInfo (FileInfo&& from) = delete;
-	FileInfo& operator = (const FileInfo& from) = delete;
-	FileInfo& operator = (FileInfo&& from) = delete;
+		FileInfo ();
+		virtual ~FileInfo () = default;
 
-	FileInfo (const std::string& filePath) noexcept;
-	bool Attach (const std::string& filePath) noexcept;
+		FileInfo (const FileInfo& from) = delete;
+		FileInfo (FileInfo&& from) = delete;
+		FileInfo& operator = (const FileInfo& from) = delete;
+		FileInfo& operator = (FileInfo&& from) = delete;
 
-	time_t AccessedTime () const noexcept { return m_fileStatus.st_atime; }
-	time_t CreatedTime () const noexcept { return m_fileStatus.st_ctime; }
-	time_t ModifiedTime () const noexcept { return m_fileStatus.st_mtime; }
-	off_t Size () const noexcept { return m_fileStatus.st_size; }
+		FileInfo (const std::string& filePath) noexcept;
+		bool Attach (const std::string& filePath) noexcept;
 
-private:
+		[[nodiscard]] time_t AccessedTime () const noexcept { return m_fileStatus.st_atime; }
+		[[nodiscard]] time_t CreatedTime () const noexcept { return m_fileStatus.st_ctime; }
+		[[nodiscard]] time_t ModifiedTime () const noexcept { return m_fileStatus.st_mtime; }
+		[[nodiscard]] off_t Size () const noexcept { return m_fileStatus.st_size; }
 
-	bool Refresh ();
+	private:
 
-	struct stat m_fileStatus;
-	std::string m_filePath;
-};
+		bool Refresh ();
+
+		struct stat m_fileStatus;
+		std::string m_filePath;
+	};
+}
 
 #endif

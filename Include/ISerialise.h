@@ -27,30 +27,36 @@
 #include <cstdint>
 #include <cstddef>
 
-///////////////////////////////////////////////////////////////////////////////
-/// <summary>
-/// Base class to define interface for common Linux serialisation types
-/// </summary>
+////////////////////////////////////////////////////////////////////////////////
+///
 
-class ISerialise
+namespace spc
 {
-public:
+	////////////////////////////////////////////////////////////////////////////
+	/// <summary>
+	/// Base class to define interface for common Linux serialisation types
+	/// </summary>
 
-	ISerialise () : m_handleId (INVALID_HANDLE_VALUE) {	}
-	virtual ~ISerialise () = default;
+	class ISerialise
+	{
+	public:
 
-	bool IsOpen () const noexcept {return m_handleId != INVALID_HANDLE_VALUE;}
+		ISerialise () : m_handleId (INVALID_HANDLE_VALUE) {	}
+		virtual ~ISerialise () = default;
 
-	virtual bool Send (const uint8_t* pBuffer, size_t length) = 0;
-	virtual size_t Read (uint8_t* pBuffer, size_t length) = 0;
-	virtual void Close () = 0;
-	virtual void ReOpen () = 0;
+		[[nodiscard]] bool IsOpen () const noexcept {return m_handleId != INVALID_HANDLE_VALUE;}
 
-protected:
+		[[nodiscard]] virtual bool Send (const uint8_t* pBuffer, size_t length) = 0;
+		[[nodiscard]] virtual size_t Read (uint8_t* pBuffer, size_t length) = 0;
+		virtual void Close () = 0;
+		[[nodiscard]] virtual bool ReOpen () = 0;
 
-	static constexpr int32_t INVALID_HANDLE_VALUE = -1;
+	protected:
 
-	int32_t m_handleId;
-};
+		static constexpr int32_t INVALID_HANDLE_VALUE = -1;
+
+		int32_t m_handleId;
+	};
+}
 
 #endif

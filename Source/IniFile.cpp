@@ -27,218 +27,224 @@
 #include <algorithm>
 
 ////////////////////////////////////////////////////////////////////////////////
-//
+///
 
-IniFile::IniFile () :
-	m_currentSection (nullptr)
+namespace spc
 {
-}
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-////////////////////////////////////////////////////////////////////////////////
-//
-
-void IniFile::AddSection (const IniSection& newSection)
-{
-	m_vectorOfSections.push_back (newSection);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//
-
-int32_t IniFile::GetItemValueAsInt (const std::string& sectionName, const std::string& entryName, int32_t defaultValue) const noexcept
-{
-	for (const IniSection& nextSection : m_vectorOfSections)
+	IniFile::IniFile () :
+		m_currentSection (nullptr)
 	{
-		if (nextSection.GetSectionName () == sectionName)
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	void IniFile::AddSection (const IniSection& newSection)
+	{
+		m_vectorOfSections.push_back (newSection);
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	int32_t IniFile::GetItemValueAsInt (const std::string& sectionName, const std::string& entryName, int32_t defaultValue) const noexcept
+	{
+		for (const IniSection& nextSection : m_vectorOfSections)
 		{
-			int32_t foundValue;
-			if (nextSection.GetItemValueAsInt (entryName, foundValue))
+			if (nextSection.GetSectionName () == sectionName)
 			{
-				return foundValue;
-			}
-		}
-	}
-
-	return defaultValue;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//
-
-std::string IniFile::GetItemValueAsString (const std::string& sectionName, const std::string& entryName, const std::string& defautlValue) const noexcept
-{
-	for (const IniSection& nextSection : m_vectorOfSections)
-	{
-		if (nextSection.GetSectionName () == sectionName)
-		{
-			std::string foundValue;
-			if (nextSection.GetItemValueAsString (entryName, foundValue))
-			{
-				return foundValue;
-			}
-		}
-	}
-
-	return defautlValue;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//
-
-bool IniFile::GetItemValueAsTime (const std::string& sectionName, const std::string& entryName, uint8_t& hours, uint8_t& minutes, uint8_t& seconds) const noexcept
-{
-	for (const IniSection& nextSection : m_vectorOfSections)
-	{
-		if (nextSection.GetSectionName () == sectionName)
-		{
-			return nextSection.GetItemValueAsTime (entryName, hours, minutes, seconds);
-		}
-	}
-
-	return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//
-
-bool IniFile::ReadIniFile (const std::string& path)
-{
-	ASCIIFileObject iniFile;
-
-	if (!iniFile.Open (path)) return false;
-
-	std::string nextLine;
-
-	while (iniFile.ReadNextLine (nextLine))
-	{
-		ParseNextLine (nextLine);
-	}
-
-	return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//
-
-void IniFile::ParseNextLine (std::string& line) noexcept
-{
-	line.erase (std::remove_if (line.begin (), line.end (), isspace), line.end ());
-	if (line.length () == 0) return;
-
-	if (line[0] == SectionNameOpen && line[line.length () - 1] == SectionNameClose)
-	{
-		m_currentSection = nullptr;
-
-		std::string section = line.substr (1, line.length () - 2);
-
-		for (IniSection& item : m_vectorOfSections)
-		{
-			if (item.GetSectionName () == section)
-			{
-				m_currentSection = &item;
-				return;
+				int32_t foundValue;
+				if (nextSection.GetItemValueAsInt (entryName, foundValue))
+				{
+					return foundValue;
+				}
 			}
 		}
 
-		AddSection (IniSection (section));
+		return defaultValue;
 	}
-	else if (m_currentSection != nullptr)
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	std::string IniFile::GetItemValueAsString (const std::string& sectionName, const std::string& entryName, const std::string& defautlValue) const noexcept
 	{
-		size_t position = line.find (ItemAssignment);
-
-		if (position == std::string::npos) return;
-
-		std::string entryName = line.substr (0, position);
-		std::string entryValue = line.substr (position + 1, line.length () - 1);
-
-		m_currentSection->SetItemValue (entryName,  entryValue);
-	}
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//
-
-void IniSection::SetItemValue (const std::string& name, const std::string& value) noexcept
-{
-	for (IniItem& item : m_vectorOfItems)
-	{
-		if (item.GetName () == name)
+		for (const IniSection& nextSection : m_vectorOfSections)
 		{
-			item = IniItem (name, value);
-			return;
+			if (nextSection.GetSectionName () == sectionName)
+			{
+				std::string foundValue;
+				if (nextSection.GetItemValueAsString (entryName, foundValue))
+				{
+					return foundValue;
+				}
+			}
 		}
+
+		return defautlValue;
 	}
-}
 
-////////////////////////////////////////////////////////////////////////////////
-//
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-bool IniSection::GetItemValueAsString (const std::string &name, std::string& result) const noexcept
-{
-	for (const IniItem& item : m_vectorOfItems)
+	bool IniFile::GetItemValueAsTime (const std::string& sectionName, const std::string& entryName, uint8_t& hours, uint8_t& minutes, uint8_t& seconds) const noexcept
 	{
-		if (item.GetName () == name)
+		for (const IniSection& nextSection : m_vectorOfSections)
 		{
-			result = item.GetValue ();
-			return true;
+			if (nextSection.GetSectionName () == sectionName)
+			{
+				return nextSection.GetItemValueAsTime (entryName, hours, minutes, seconds);
+			}
 		}
+
+		return false;
 	}
 
-	return false;
-}
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-////////////////////////////////////////////////////////////////////////////////
-//
-
-bool IniSection::GetItemValueAsInt (const std::string &name, int32_t& result) const noexcept
-{
-	std::string value;
-	if (GetItemValueAsString (name, value))
+	bool IniFile::ReadIniFile (const std::string& path)
 	{
-		if (!IniItem::IsNumeric (value)) return false;
-		result = static_cast<int32_t>(std::stoi (value));
+		ASCIIFileObject iniFile;
+
+		if (!iniFile.Open (path)) return false;
+
+		std::string nextLine;
+
+		while (iniFile.ReadNextLine (nextLine))
+		{
+			ParseNextLine (nextLine);
+		}
+
 		return true;
 	}
 
-	return false;
-}
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-////////////////////////////////////////////////////////////////////////////////
-//
+	void IniFile::ParseNextLine (std::string& line) noexcept
+	{
+		line.erase (std::remove_if (line.begin (), line.end (), isspace), line.end ());
+		if (line.length () == 0) return;
 
-bool IniSection::GetItemValueAsTime (const std::string& name, uint8_t& hours, uint8_t& minutes, uint8_t& seconds) const noexcept
-{
-	std::string asciiTime;
+		if (line[0] == SectionNameOpen && line[line.length () - 1] == SectionNameClose)
+		{
+			m_currentSection = nullptr;
 
-	if (!GetItemValueAsString (name, asciiTime)) return false;
-	if (asciiTime.length () != 8) return false;
-	if (asciiTime[HourToMinuteColonOffset] != TimeColon ||
-		asciiTime[MinuteToSecondColonOffset] != TimeColon) return false;
+			std::string section = line.substr (1, line.length () - 2);
 
-	std::string asciiHours = asciiTime.substr (0, 2);
-	std::string asciiMinutes = asciiTime.substr (3, 2);
-	std::string asciiSeconds = asciiTime.substr (6, 2);
+			for (IniSection& item : m_vectorOfSections)
+			{
+				if (item.GetSectionName () == section)
+				{
+					m_currentSection = &item;
+					return;
+				}
+			}
 
-	if (!IniItem::IsNumeric(asciiHours)) return false;
-	if (!IniItem::IsNumeric(asciiMinutes)) return false;
-	if (!IniItem::IsNumeric(asciiSeconds)) return false;
+			AddSection (IniSection (section));
+		}
+		else if (m_currentSection != nullptr)
+		{
+			size_t position = line.find (ItemAssignment);
 
-	hours = static_cast<uint8_t>(std::stoi (asciiHours));
-	minutes = static_cast<uint8_t>(std::stoi (asciiMinutes));
-	seconds = static_cast<uint8_t>(std::stoi (asciiSeconds));
+			if (position == std::string::npos) return;
 
-	if (hours > 23) return false;
-	if (minutes > 59) return false;
-	if (seconds > 59) return false;
-	return true;
-}
+			std::string entryName = line.substr (0, position);
+			std::string entryValue = line.substr (position + 1, line.length () - 1);
 
-////////////////////////////////////////////////////////////////////////////////
-//
+			m_currentSection->SetItemValue (entryName,  entryValue);
+		}
+	}
 
-bool IniItem::IsNumeric (const std::string& value) noexcept
-{
-    for (char const &character : value)
-        if (!std::isdigit (character)) return false;
-    return true;
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	void IniSection::SetItemValue (const std::string& name, const std::string& value) noexcept
+	{
+		for (IniItem& item : m_vectorOfItems)
+		{
+			if (item.GetName () == name)
+			{
+				item = IniItem (name, value);
+				return;
+			}
+		}
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	bool IniSection::GetItemValueAsString (const std::string &name, std::string& result) const noexcept
+	{
+		for (const IniItem& item : m_vectorOfItems)
+		{
+			if (item.GetName () == name)
+			{
+				result = item.GetValue ();
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	bool IniSection::GetItemValueAsInt (const std::string &name, int32_t& result) const noexcept
+	{
+		std::string value;
+		if (GetItemValueAsString (name, value))
+		{
+			if (!IniItem::IsNumeric (value)) return false;
+			result = static_cast<int32_t>(std::stoi (value));
+			return true;
+		}
+
+		return false;
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	bool IniSection::GetItemValueAsTime (const std::string& name, uint8_t& hours, uint8_t& minutes, uint8_t& seconds) const noexcept
+	{
+		std::string asciiTime;
+
+		if (!GetItemValueAsString (name, asciiTime)) return false;
+		if (asciiTime.length () != 8) return false;
+		if (asciiTime[HourToMinuteColonOffset] != TimeColon ||
+			asciiTime[MinuteToSecondColonOffset] != TimeColon) return false;
+
+		std::string asciiHours = asciiTime.substr (0, 2);
+		std::string asciiMinutes = asciiTime.substr (3, 2);
+		std::string asciiSeconds = asciiTime.substr (6, 2);
+
+		if (!IniItem::IsNumeric(asciiHours)) return false;
+		if (!IniItem::IsNumeric(asciiMinutes)) return false;
+		if (!IniItem::IsNumeric(asciiSeconds)) return false;
+
+		hours = static_cast<uint8_t>(std::stoi (asciiHours));
+		minutes = static_cast<uint8_t>(std::stoi (asciiMinutes));
+		seconds = static_cast<uint8_t>(std::stoi (asciiSeconds));
+
+		if (hours > 23) return false;
+		if (minutes > 59) return false;
+		if (seconds > 59) return false;
+		return true;
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	bool IniItem::IsNumeric (const std::string& value) noexcept
+	{
+		for (char const &character : value)
+			if (!std::isdigit (character)) return false;
+		return true;
+	}
 }

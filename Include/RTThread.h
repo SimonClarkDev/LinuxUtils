@@ -30,26 +30,32 @@
 ////////////////////////////////////////////////////////////////////////////////
 ///
 
-class OneSecondThread : protected Thread
+namespace spc
 {
-public:
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-	OneSecondThread (const std::string& threadName);
-	virtual ~OneSecondThread () = default;
+	class OneSecondThread : protected Thread
+	{
+	public:
 
-protected:
+		OneSecondThread (const std::string& threadName);
+		virtual ~OneSecondThread () = default;
 
-	virtual void ClockMethod () noexcept = 0;
+	protected:
 
-private:
+		virtual void ClockMethod () noexcept = 0;
 
-	static constexpr uint32_t RealTimeThreadWait = 10000; // us
+	private:
 
-	virtual void ThreadStart () noexcept;
-	virtual TaskAction ThreadMethod () noexcept;
+		static constexpr uint32_t RealTimeThreadWait = 10000; // us
 
-	Clock m_clock;
-	uint32_t m_clockSeconds;
-};
+		virtual void ThreadStart () noexcept;
+		virtual TaskAction ThreadMethod () noexcept;
+
+		Clock m_clock;
+		uint32_t m_clockSeconds;
+	};
+}
 
 #endif /* _RTTHREAD_H_ */

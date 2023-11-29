@@ -26,36 +26,42 @@
 
 #include "FileObject.h"
 
-///////////////////////////////////////////////////////////////////////////////
-/// <summary>
-/// I2C port wrapper class
-/// </summary>
+////////////////////////////////////////////////////////////////////////////////
+///
 
-class SPIPort : public FileObject
+namespace spc
 {
-public:
+	////////////////////////////////////////////////////////////////////////////
+	/// <summary>
+	/// I2C port wrapper class
+	/// </summary>
 
-	enum class Mode {MODE_0, MODE_1, MODE_2, MODE_3};
+	class SPIPort : public FileObject
+	{
+	public:
 
-	SPIPort () = default;
-	virtual ~SPIPort () = default;
+		enum class Mode {MODE_0, MODE_1, MODE_2, MODE_3};
 
-	SPIPort (const SPIPort& from) = default;
-	SPIPort (SPIPort&& from) = default;
-	SPIPort& operator = (const SPIPort& from) = default;
-	SPIPort& operator = (SPIPort&& from) = default;
+		SPIPort () = default;
+		virtual ~SPIPort () = default;
 
-	bool Initialise (uint32_t speedInHz = 1000000, SPIPort::Mode mode = SPIPort::Mode::MODE_1, uint32_t bitPerWord = 8) noexcept;
+		SPIPort (const SPIPort& from) = default;
+		SPIPort (SPIPort&& from) = default;
+		SPIPort& operator = (const SPIPort& from) = default;
+		SPIPort& operator = (SPIPort&& from) = default;
 
-	bool Open (const std::string& pathName) noexcept;
-	bool Write (const uint8_t* pBuffer, size_t length) noexcept;
-	size_t Read (uint8_t* pBuffer, size_t length) noexcept;
+		[[nodiscard]] bool Initialise (uint32_t speedInHz = 1000000, SPIPort::Mode mode = SPIPort::Mode::MODE_1, uint32_t bitPerWord = 8) noexcept;
 
-private:
+		[[nodiscard]] bool Open (const std::string& pathName) noexcept;
+		[[nodiscard]] bool Write (const uint8_t* pBuffer, size_t length) noexcept;
+		[[nodiscard]] size_t Read (uint8_t* pBuffer, size_t length) noexcept;
 
-	static constexpr uint32_t MAX_BUFFER_SIZE = 16;
+	private:
 
-	uint8_t m_recvBuffer[MAX_BUFFER_SIZE];
-};
+		static constexpr uint32_t MAX_BUFFER_SIZE = 16;
+
+		uint8_t m_recvBuffer[MAX_BUFFER_SIZE];
+	};
+}
 
 #endif

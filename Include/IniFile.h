@@ -34,118 +34,124 @@ class FileObject;
 ////////////////////////////////////////////////////////////////////////////////
 ///
 
-class IniItem
+namespace spc
 {
-public:
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-	IniItem (std::string name, const std::string& value) :
-		m_name (name),
-		m_value (value)
+	class IniItem
 	{
-	}
-	virtual ~IniItem() = default;
+	public:
 
-	IniItem (IniItem&& from) = default;
-	IniItem (const IniItem& from)
+		IniItem (std::string name, const std::string& value) :
+			m_name (name),
+			m_value (value)
+		{
+		}
+		virtual ~IniItem() = default;
+
+		IniItem (IniItem&& from) = default;
+		IniItem (const IniItem& from)
+		{
+			operator = (from);
+		}
+
+		IniItem& operator = (IniItem&& from) = default;
+		IniItem& operator = (const IniItem& from)
+		{
+			m_name = from.m_name;
+			m_value = from.m_value;
+			return *this;
+		}
+
+		[[nodiscard]] static bool IsNumeric (const std::string& value) noexcept;
+
+		[[nodiscard]] std::string GetName () const noexcept { return m_name; }
+		[[nodiscard]] std::string GetValue () const noexcept { return m_value; }
+
+	private:
+
+		std::string m_name;
+		std::string m_value;
+	};
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	class IniSection
 	{
-		operator = (from);
-	}
+	public:
 
-	IniItem& operator = (IniItem&& from) = default;
-	IniItem& operator = (const IniItem& from)
+		IniSection (const std::string& sectionName) :
+			m_sectionName (sectionName)
+		{
+		}
+
+		virtual ~IniSection () = default;
+		IniSection (IniSection&& from) = default;
+		IniSection (const IniSection& from) = default;
+		IniSection& operator = (IniSection&& from) = default;
+		IniSection& operator = (const IniSection& from)
+		{
+			m_sectionName = from.m_sectionName;
+			m_vectorOfItems = from.m_vectorOfItems;
+			return *this;
+		}
+
+		void AddItem (const IniItem& iniItem)
+		{
+			m_vectorOfItems.push_back (iniItem);
+		}
+
+		void SetItemValue (const std::string& name, const std::string& value) noexcept;
+		[[nodiscard]] bool GetItemValueAsString (const std::string& name, std::string& result) const noexcept;
+		[[nodiscard]] bool GetItemValueAsTime (const std::string& name, uint8_t& hours, uint8_t& minutes, uint8_t& seconds) const noexcept;
+		[[nodiscard]] bool GetItemValueAsInt (const std::string &name, int32_t& result) const noexcept;
+
+		[[nodiscard]] std::string GetSectionName () const noexcept { return m_sectionName; }
+
+	private:
+
+		static constexpr uint32_t HourToMinuteColonOffset = 2;
+		static constexpr uint32_t MinuteToSecondColonOffset = 5;
+		static constexpr char TimeColon = ':';
+
+		std::vector<IniItem> m_vectorOfItems;
+		std::string m_sectionName;
+	};
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	class IniFile
 	{
-		m_name = from.m_name;
-		m_value = from.m_value;
-		return *this;
-	}
+	public:
 
-	static bool IsNumeric (const std::string& value) noexcept;
+		IniFile ();
+		virtual ~IniFile () = default;
+		IniFile (IniFile&& from) = delete;
+		IniFile (const IniFile& from) = delete;
+		IniFile& operator = (const IniFile&& from) = delete;
+		IniFile& operator = (const IniFile& from) = delete;
 
-	std::string GetName () const noexcept { return m_name; }
-	std::string GetValue () const noexcept { return m_value; }
+		void AddSection (const IniSection& newSection);
+		[[nodiscard]] bool ReadIniFile (const std::string& path);
 
-private:
+		[[nodiscard]] std::string GetItemValueAsString (const std::string& sectionName, const std::string& entryName, const std::string& defaultValue = "") const noexcept;
+		[[nodiscard]] int32_t GetItemValueAsInt (const std::string& sectionName, const std::string& entryName, int32_t defaultValue = 0) const noexcept;
+		[[nodiscard]] bool GetItemValueAsTime (const std::string& sectionName, const std::string& entryName, uint8_t& hours, uint8_t& minutes, uint8_t& seconds) const noexcept;
 
-	std::string m_name;
-	std::string m_value;
-};
+	private:
 
-////////////////////////////////////////////////////////////////////////////////
-///
+		static constexpr char SectionNameOpen = '[';
+		static constexpr char SectionNameClose = ']';
+		static constexpr char ItemAssignment = '=';
 
-class IniSection
-{
-public:
+		void ParseNextLine (std::string& line) noexcept;
 
-	IniSection (const std::string& sectionName) :
-		m_sectionName (sectionName)
-	{
-	}
-
-	virtual ~IniSection () = default;
-	IniSection (IniSection&& from) = default;
-	IniSection (const IniSection& from) = default;
-	IniSection& operator = (IniSection&& from) = default;
-	IniSection& operator = (const IniSection& from)
-	{
-		m_sectionName = from.m_sectionName;
-		m_vectorOfItems = from.m_vectorOfItems;
-		return *this;
-	}
-
-	void AddItem (const IniItem& iniItem)
-	{
-		m_vectorOfItems.push_back (iniItem);
-	}
-
-	void SetItemValue (const std::string& name, const std::string& value) noexcept;
-	bool GetItemValueAsString (const std::string& name, std::string& result) const noexcept;
-	bool GetItemValueAsTime (const std::string& name, uint8_t& hours, uint8_t& minutes, uint8_t& seconds) const noexcept;
-	bool GetItemValueAsInt (const std::string &name, int32_t& result) const noexcept;
-
-	std::string GetSectionName () const noexcept { return m_sectionName; }
-
-private:
-
-	static constexpr uint32_t HourToMinuteColonOffset = 2;
-	static constexpr uint32_t MinuteToSecondColonOffset = 5;
-	static constexpr char TimeColon = ':';
-
-	std::vector<IniItem> m_vectorOfItems;
-	std::string m_sectionName;
-};
-
-////////////////////////////////////////////////////////////////////////////////
-///
-
-class IniFile
-{
-public:
-
-	IniFile ();
-	virtual ~IniFile () = default;
-	IniFile (IniFile&& from) = delete;
-	IniFile (const IniFile& from) = delete;
-	IniFile& operator = (const IniFile&& from) = delete;
-	IniFile& operator = (const IniFile& from) = delete;
-
-	void AddSection (const IniSection& newSection);
-	bool ReadIniFile (const std::string& path);
-
-	std::string GetItemValueAsString (const std::string& sectionName, const std::string& entryName, const std::string& defaultValue = "") const noexcept;
-	int32_t GetItemValueAsInt (const std::string& sectionName, const std::string& entryName, int32_t defaultValue = 0) const noexcept;
-	bool GetItemValueAsTime (const std::string& sectionName, const std::string& entryName, uint8_t& hours, uint8_t& minutes, uint8_t& seconds) const noexcept;
-
-private:
-
-	static constexpr char SectionNameOpen = '[';
-	static constexpr char SectionNameClose = ']';
-	static constexpr char ItemAssignment = '=';
-
-	void ParseNextLine (std::string& line) noexcept;
-
-	std::vector<IniSection> m_vectorOfSections;
-	IniSection* m_currentSection;
-};
+		std::vector<IniSection> m_vectorOfSections;
+		IniSection* m_currentSection;
+	};
+}
 
 #endif

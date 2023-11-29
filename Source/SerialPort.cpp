@@ -39,56 +39,61 @@
 #include <unistd.h>
 #include <string.h>
 
-
 ////////////////////////////////////////////////////////////////////////////////
-//
+///
 
-bool SerialPort::Open (std::string pathName, uint32_t baudRate, bool enableRTSCTS)
+namespace spc
 {
-	if (!FileObject::Open (pathName)) return false;
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-	struct termios2 tty;
-	memset (&tty, 0, sizeof tty);
-
-	if (ioctl (m_handleId, TCGETS2, &tty) != 0)
+	bool SerialPort::Open (std::string pathName, uint32_t baudRate, bool enableRTSCTS)
 	{
-		spdlog::error ("Failed to load serial port settings {0} with error number {1}", m_pathName, errno);
+		if (!FileObject::Open (pathName)) return false;
 
-		Close ();
-		return false;
+		struct termios2 tty;
+		memset (&tty, 0, sizeof tty);
+
+		if (ioctl (m_handleId, TCGETS2, &tty) != 0)
+		{
+			spdlog::error ("Failed to load serial port settings {0} with error number {1}", m_pathName, errno);
+
+			Close ();
+			return false;
+		}
+
+		tty.c_cflag &= ~(PARENB|CSTOPB|CBAUD);
+
+		tty.c_cflag |= CBAUDEX;
+		tty.c_ispeed = baudRate;
+		tty.c_ospeed = baudRate;
+
+		tty.c_cflag &= ~(CS5|CS6|CS7);
+		tty.c_cflag |= CS8;
+
+		if (enableRTSCTS)
+			tty.c_cflag |= CRTSCTS;
+		else
+			tty.c_cflag &= ~CRTSCTS;
+
+		tty.c_cflag |= CREAD|CLOCAL;
+		tty.c_lflag &= ~(ECHO|ECHOE|ECHONL|ICANON);
+		tty.c_lflag &= ~ISIG;
+		tty.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL);
+		tty.c_iflag &= ~(IXON|IXOFF|IXANY);
+		tty.c_oflag &= ~(OPOST|ONLCR);
+
+		tty.c_cc[VTIME] = 0;
+		tty.c_cc[VMIN] = 0;
+
+		if (ioctl (m_handleId, TCSETS2, &tty) != 0)
+		{
+			spdlog::error ("Failed to save serial port settings {0} with error number {1}", m_pathName, errno);
+
+			Close ();
+			return false;
+		}
+
+		return true;
 	}
-
-	tty.c_cflag &= ~(PARENB|CSTOPB|CBAUD);
-
-	tty.c_cflag |= CBAUDEX;
-	tty.c_ispeed = baudRate;
-	tty.c_ospeed = baudRate;
-
-	tty.c_cflag &= ~(CS5|CS6|CS7);
-	tty.c_cflag |= CS8;
-
-	if (enableRTSCTS)
-		tty.c_cflag |= CRTSCTS;
-	else
-		tty.c_cflag &= ~CRTSCTS;
-
-	tty.c_cflag |= CREAD|CLOCAL;
-	tty.c_lflag &= ~(ECHO|ECHOE|ECHONL|ICANON);
-	tty.c_lflag &= ~ISIG;
-	tty.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL);
-	tty.c_iflag &= ~(IXON|IXOFF|IXANY);
-	tty.c_oflag &= ~(OPOST|ONLCR);
-
-	tty.c_cc[VTIME] = 0;
-	tty.c_cc[VMIN] = 0;
-
-	if (ioctl (m_handleId, TCSETS2, &tty) != 0)
-	{
-		spdlog::error ("Failed to save serial port settings {0} with error number {1}", m_pathName, errno);
-
-		Close ();
-		return false;
-	}
-
-	return true;
 }

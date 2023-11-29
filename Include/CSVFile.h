@@ -30,61 +30,64 @@
 ////////////////////////////////////////////////////////////////////////////////
 ///
 
-class CSVWriter : public CSVCore
+namespace spc
 {
-public:
-
-	CSVWriter (CSVColumnCollection& columnCollection) : CSVCore (columnCollection)
+	class CSVWriter : public CSVCore
 	{
-	}
-	virtual ~CSVWriter () = default;
+	public:
 
-	CSVWriter (const CSVWriter& from) = delete;
-	CSVWriter (const CSVWriter&& from) = delete;
-	CSVWriter& operator = (const CSVWriter& from);
-	CSVWriter& operator = (const CSVWriter&& from) = delete;
+		CSVWriter (CSVColumnCollection& columnCollection) : CSVCore (columnCollection)
+		{
+		}
+		virtual ~CSVWriter () = default;
 
-	bool Open (const std::string& filePath, bool append = true) noexcept;
-	void Close (bool flush = false) noexcept;
+		CSVWriter (const CSVWriter& from) = delete;
+		CSVWriter (const CSVWriter&& from) = delete;
+		CSVWriter& operator = (const CSVWriter& from);
+		CSVWriter& operator = (const CSVWriter&& from) = delete;
 
-	void WriteHeader () noexcept;
-	bool WriteLine () noexcept;
+		[[nodiscard]] bool Open (const std::string& filePath, bool append = true) noexcept;
+		void Close (bool flush = false) noexcept;
 
-private:
+		[[nodiscard]] bool WriteHeader () noexcept;
+		[[nodiscard]] bool WriteLine () noexcept;
 
-	static constexpr const std::string_view CommaSeparator = ", ";
+	private:
 
-	ASCIIFileObject	m_fileObject;
-};
+		static constexpr const std::string_view CommaSeparator = ", ";
 
-////////////////////////////////////////////////////////////////////////////////
-///
+		ASCIIFileObject	m_fileObject;
+	};
 
-class CSVReader : public CSVCore
-{
-public:
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-	CSVReader (CSVColumnCollection& columnCollection) : CSVCore (columnCollection)
+	class CSVReader : public CSVCore
 	{
-	}
-	virtual ~CSVReader () = default;
+	public:
 
-	CSVReader (const CSVReader& from) = delete;
-	CSVReader (const CSVReader&& from) = delete;
-	CSVReader& operator = (const CSVReader& from);
-	CSVReader& operator = (const CSVReader&& from) = delete;
+		CSVReader (CSVColumnCollection& columnCollection) : CSVCore (columnCollection)
+		{
+		}
+		virtual ~CSVReader () = default;
 
-	bool Open (const std::string& filePath) noexcept;
-	void Close () noexcept;
+		CSVReader (const CSVReader& from) = delete;
+		CSVReader (const CSVReader&& from) = delete;
+		CSVReader& operator = (const CSVReader& from);
+		CSVReader& operator = (const CSVReader&& from) = delete;
 
-	bool ReadHeader () noexcept;
-	bool ReadLine () noexcept;
+		[[nodiscard]] bool Open (const std::string& filePath) noexcept;
+		void Close () noexcept;
 
-private:
+		[[nodiscard]] bool ReadHeader () noexcept;
+		[[nodiscard]] bool ReadLine () noexcept;
 
-	static constexpr const char Comma = ',';
+	private:
 
-	ASCIIFileObject	m_fileObject;
-};
+		static constexpr const char Comma = ',';
+
+		ASCIIFileObject	m_fileObject;
+	};
+}
 
 #endif

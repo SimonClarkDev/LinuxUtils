@@ -31,66 +31,72 @@
 ////////////////////////////////////////////////////////////////////////////////
 ///
 
-bool I2CPort::Open (const std::string& pathName, uint8_t slaveAddress) noexcept
+namespace spc
 {
-	if (!FileObject::Open (pathName)) return false;
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-	if (ioctl (m_handleId, I2C_SLAVE, slaveAddress) != 0)
+	bool I2CPort::Open (const std::string& pathName, uint8_t slaveAddress) noexcept
 	{
-		spdlog::error ("Failed to setup I2C slave address {0} with error number {1}", slaveAddress, errno);
+		if (!FileObject::Open (pathName)) return false;
 
-		Close ();
+		if (ioctl (m_handleId, I2C_SLAVE, slaveAddress) != 0)
+		{
+			spdlog::error ("Failed to setup I2C slave address {0} with error number {1}", slaveAddress, errno);
+
+			Close ();
+			return false;
+		}
+
+		return true;
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	bool I2CPort::ReadByte (uint8_t baseAddress, uint8_t& readData) noexcept
+	{
+		if (Write (&baseAddress, sizeof (uint8_t)))
+		{
+			return Read (&readData, sizeof (uint8_t)) == sizeof (uint8_t);
+		}
+
 		return false;
 	}
 
-	return true;
-}
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-////////////////////////////////////////////////////////////////////////////////
-///
-
-bool I2CPort::ReadByte (uint8_t baseAddress, uint8_t& readData) noexcept
-{
-	if (Write (&baseAddress, sizeof (uint8_t)))
+	bool I2CPort::ReadWord (uint8_t baseAddress, uint16_t& readData) noexcept
 	{
-		return Read (&readData, sizeof (uint8_t)) == sizeof (uint8_t);
-	}
-
-	return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-///
-
-bool I2CPort::ReadWord (uint8_t baseAddress, uint16_t& readData) noexcept
-{
-	if (Write (&baseAddress, sizeof (uint8_t)))
-	{
-		uint8_t dataBuffer[sizeof (uint16_t)];
-		if (Read (dataBuffer, sizeof (uint16_t)) == sizeof (uint16_t))
+		if (Write (&baseAddress, sizeof (uint8_t)))
 		{
-			readData = static_cast<uint16_t>(dataBuffer[0] | (dataBuffer[1] << 8));
-			return true;
+			uint8_t dataBuffer[sizeof (uint16_t)];
+			if (Read (dataBuffer, sizeof (uint16_t)) == sizeof (uint16_t))
+			{
+				readData = static_cast<uint16_t>(dataBuffer[0] | (dataBuffer[1] << 8));
+				return true;
+			}
 		}
+
+		return false;
 	}
 
-	return false;
-}
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-////////////////////////////////////////////////////////////////////////////////
-///
+	bool I2CPort::WriteByte (uint8_t baseAddress, uint8_t writeData) noexcept
+	{
+		uint8_t outputBuffer[] = {baseAddress, writeData};
+		return Write (outputBuffer, sizeof (outputBuffer));
+	}
 
-bool I2CPort::WriteByte (uint8_t baseAddress, uint8_t writeData) noexcept
-{
-	uint8_t outputBuffer[] = {baseAddress, writeData};
-	return Write (outputBuffer, sizeof (outputBuffer));
-}
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-////////////////////////////////////////////////////////////////////////////////
-///
-
-bool I2CPort::WriteWord (uint8_t baseAddress, uint16_t writeData) noexcept
-{
-	uint8_t outputBuffer[] = {baseAddress, static_cast<uint8_t>(writeData >> 8), static_cast<uint8_t>(writeData)};
-	return Write (outputBuffer, sizeof (outputBuffer));
+	bool I2CPort::WriteWord (uint8_t baseAddress, uint16_t writeData) noexcept
+	{
+		uint8_t outputBuffer[] = {baseAddress, static_cast<uint8_t>(writeData >> 8), static_cast<uint8_t>(writeData)};
+		return Write (outputBuffer, sizeof (outputBuffer));
+	}
 }
