@@ -28,24 +28,30 @@
 
 #include "FileObject.h"
 
-///////////////////////////////////////////////////////////////////////////////
-/// <summary>
-/// Serial port wrapper class
-/// </summary>
+////////////////////////////////////////////////////////////////////////////////
+///
 
-class SerialPort : public FileObject
+namespace spc
 {
-public:
+	////////////////////////////////////////////////////////////////////////////
+	/// <summary>
+	/// Serial port wrapper class
+	/// </summary>
 
-	SerialPort () = default;
-	virtual ~SerialPort () = default;
-	SerialPort (SerialPort&& from) = delete;
-	SerialPort (const SerialPort& from) = delete;
-	SerialPort& operator = (SerialPort&& from) = delete;
-	SerialPort& operator = (const SerialPort& from) = delete;
+	class SerialPort : public FileObject
+	{
+	public:
 
-	bool Open (std::string pathName, uint32_t baudRate, bool enableRTSCTS = false);
-};
+		SerialPort () = default;
+		virtual ~SerialPort () = default;
+		SerialPort (SerialPort&& from) = delete;
+		SerialPort (const SerialPort& from) = delete;
+		SerialPort& operator = (SerialPort&& from) = delete;
+		SerialPort& operator = (const SerialPort& from) = delete;
+
+		[[nodiscard]] bool Open (std::string pathName, uint32_t baudRate, bool enableRTSCTS = false);
+	};
+}
 
 #endif
 

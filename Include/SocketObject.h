@@ -29,35 +29,41 @@
 
 #include "ISerialise.h"
 
-///////////////////////////////////////////////////////////////////////////////
-/// <summary>
-/// Socket object class
-/// </summary>
+////////////////////////////////////////////////////////////////////////////////
+///
 
-class SocketObject : public ISerialise
+namespace spc
 {
-public:
+	////////////////////////////////////////////////////////////////////////////
+	/// <summary>
+	/// Socket object class
+	/// </summary>
 
-	SocketObject (const SocketObject& from) = delete;
-	SocketObject (SocketObject&& from) = delete;
-	SocketObject& operator = (SocketObject&& from) = delete;
-	SocketObject& operator = (const SocketObject& from) = delete;
+	class SocketObject : public ISerialise
+	{
+	public:
 
-	SocketObject () noexcept;
-	virtual ~SocketObject () noexcept;
+		SocketObject (const SocketObject& from) = delete;
+		SocketObject (SocketObject&& from) = delete;
+		SocketObject& operator = (SocketObject&& from) = delete;
+		SocketObject& operator = (const SocketObject& from) = delete;
 
-	void Open (const std::string& address, uint16_t port) noexcept;
+		SocketObject () noexcept;
+		virtual ~SocketObject () noexcept;
 
-	virtual void ReOpen () noexcept;
-	virtual void Close () noexcept;
-	virtual bool Send (const uint8_t* pBuffer, size_t length) noexcept;
-	virtual size_t Read (uint8_t* pBuffer, size_t length) noexcept;
+		[[nodiscard]] bool Open (const std::string& address, uint16_t port) noexcept;
 
-protected:
+		[[nodiscard]] virtual bool ReOpen () noexcept;
+		virtual void Close () noexcept;
+		[[nodiscard]] virtual bool Send (const uint8_t* pBuffer, size_t length) noexcept;
+		[[nodiscard]] virtual size_t Read (uint8_t* pBuffer, size_t length) noexcept;
 
-	std::string		m_address;
-	uint16_t		m_port;
-};
+	protected:
+
+		std::string		m_address;
+		uint16_t		m_port;
+	};
+}
 
 #endif
 

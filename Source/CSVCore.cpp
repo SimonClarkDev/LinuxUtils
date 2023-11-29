@@ -25,146 +25,152 @@
 
 #include <iostream>
 
-/////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 ///
 
-CSVColumn::CSVColumn (Type type, std::string columnName, uint8_t width, uint8_t precision, bool leftJustified)
+namespace spc
 {
-	char format[TEMPORARY_BUFFER_SIZE];
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-	char* pDst = format;
-
-	if (leftJustified) *pDst++ = '-';
-
-	// Depending on type...
-	switch (type)
+	CSVColumn::CSVColumn (Type type, std::string columnName, uint8_t width, uint8_t precision, bool leftJustified)
 	{
-	case	Type::Date: break;
-	case	Type::Time: break;
+		char format[TEMPORARY_BUFFER_SIZE];
 
-	case	Type::String:
-		sprintf (pDst, "%%.%ds", width);
-		break;
+		char* pDst = format;
 
-	case	Type::Row:
-	case	Type::Int:
-		sprintf (pDst, "%%%d.%dd", width, precision);
-		break;
+		if (leftJustified) *pDst++ = '-';
 
-	case	Type::Float:
-		sprintf (pDst, "%%%d.%df", width, precision);
-		break;
+		// Depending on type...
+		switch (type)
+		{
+		case	Type::Date: break;
+		case	Type::Time: break;
+
+		case	Type::String:
+			sprintf (pDst, "%%.%ds", width);
+			break;
+
+		case	Type::Row:
+		case	Type::Int:
+			sprintf (pDst, "%%%d.%dd", width, precision);
+			break;
+
+		case	Type::Float:
+			sprintf (pDst, "%%%d.%df", width, precision);
+			break;
+		}
+
+		m_formatText = format;
+		m_columnName = columnName;
+		m_precision = precision;
+		m_width = width;
+		m_type = type;
 	}
 
-	m_formatText = format;
-	m_columnName = columnName;
-	m_precision = precision;
-	m_width = width;
-	m_type = type;
-}
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-/////////////////////////////////////////////////////////////////////////////////
-///
-
-void CSVColumn::Format (const std::string& text)
-{
-	char formattedText[128];
-
-	sprintf (formattedText, m_formatText.c_str (), text.c_str ());
-	m_formattedText = formattedText;
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-///
-
-void CSVColumn::Format (int32_t value)
-{
-	if (value == 0)
+	void CSVColumn::Format (const std::string& text)
 	{
-		m_formattedText = std::string ("0");
-		return;
-	}
+		char formattedText[128];
 
-	char formattedText[TEMPORARY_BUFFER_SIZE];
-	sprintf (formattedText, m_formatText.c_str (), value);
-	m_formattedText = formattedText;
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-///
-
-void CSVColumn::Format (float value)
-{
-	char formattedText[TEMPORARY_BUFFER_SIZE];
-	sprintf (formattedText, m_formatText.c_str (), value);
-	m_formattedText = formattedText;
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-///
-
-double CSVColumn::GetValueAsDouble () const noexcept
-{
-	return std::stod (m_formattedText);
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-///
-
-float CSVColumn::GetValueAsFloat () const noexcept
-{
-	return std::stof (m_formattedText);
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-///
-
-int32_t CSVColumn::GetValueAsInt () const noexcept
-{
-	return std::stoi (m_formattedText);
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-///
-
-void CSVColumn::FormatFixed (uint32_t rowNumber)
-{
-	char formattedText[TEMPORARY_BUFFER_SIZE];
-	Clock clock;
-
-	switch (m_type)
-	{
-	case	CSVColumn::Type::Row:
-		sprintf (formattedText, m_formatText.c_str (), rowNumber);
+		sprintf (formattedText, m_formatText.c_str (), text.c_str ());
 		m_formattedText = formattedText;
-		break;
-
-	case	CSVColumn::Type::Date:
-		clock = Clock::Now ();
-		m_formattedText = clock.GetASCIIDate ();
-		break;
-
-	case	CSVColumn::Type::Time:
-		clock = Clock::Now ();
-		m_formattedText = clock.GetASCIITime ();
-		break;
-
-	default:
-		// Nothing to do
-		break;
 	}
-}
 
-/////////////////////////////////////////////////////////////////////////////////
-///
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-CSVColumn& CSVColumn::operator = (const CSVColumn& from)
-{
-	m_formattedText = from.m_formattedText;
-	m_columnName = from.m_columnName;
-	m_formatText = from.m_formatText;
-	m_precision = from.m_precision;
-	m_width = from.m_width;
-	m_type = from.m_type;
-	return *this;
+	void CSVColumn::Format (int32_t value)
+	{
+		if (value == 0)
+		{
+			m_formattedText = "0";
+			return;
+		}
+
+		char formattedText[TEMPORARY_BUFFER_SIZE];
+		sprintf (formattedText, m_formatText.c_str (), value);
+		m_formattedText = formattedText;
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	void CSVColumn::Format (float value)
+	{
+		char formattedText[TEMPORARY_BUFFER_SIZE];
+		sprintf (formattedText, m_formatText.c_str (), value);
+		m_formattedText = formattedText;
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	double CSVColumn::GetValueAsDouble () const noexcept
+	{
+		return std::stod (m_formattedText);
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	float CSVColumn::GetValueAsFloat () const noexcept
+	{
+		return std::stof (m_formattedText);
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	int32_t CSVColumn::GetValueAsInt () const noexcept
+	{
+		return std::stoi (m_formattedText);
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	void CSVColumn::FormatFixed (uint32_t rowNumber)
+	{
+		char formattedText[TEMPORARY_BUFFER_SIZE];
+		Clock clock;
+
+		switch (m_type)
+		{
+		case	CSVColumn::Type::Row:
+			sprintf (formattedText, m_formatText.c_str (), rowNumber);
+			m_formattedText = formattedText;
+			break;
+
+		case	CSVColumn::Type::Date:
+			clock = Clock::Now ();
+			m_formattedText = clock.GetASCIIDate ();
+			break;
+
+		case	CSVColumn::Type::Time:
+			clock = Clock::Now ();
+			m_formattedText = clock.GetASCIITime ();
+			break;
+
+		default:
+			// Nothing to do
+			break;
+		}
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	CSVColumn& CSVColumn::operator = (const CSVColumn& from)
+	{
+		m_formattedText = from.m_formattedText;
+		m_columnName = from.m_columnName;
+		m_formatText = from.m_formatText;
+		m_precision = from.m_precision;
+		m_width = from.m_width;
+		m_type = from.m_type;
+		return *this;
+	}
 }

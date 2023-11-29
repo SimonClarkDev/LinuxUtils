@@ -29,76 +29,79 @@
 #include <cstdint>
 #include <cstring>
 
-/////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 ///
 
-struct DataBlock
+namespace spc
 {
-	DataBlock () = default;
-	virtual ~DataBlock () = default;
-
-	DataBlock (const DataBlock& from) { operator = (from); }
-	DataBlock (const DataBlock&& from) { operator = (from); }
-
-	DataBlock& operator = (const DataBlock& from)
+	struct DataBlock
 	{
-		m_data.resize (from.GetSize ());
-		std::memmove (m_data.data (), from.m_data.data (), from.GetSize ());
-		return *this;
-	}
+		DataBlock () = default;
+		virtual ~DataBlock () = default;
 
-	DataBlock& operator = (const DataBlock&& from)
-	{
-		m_data = std::move (from.m_data);
-		return *this;
-	}
+		DataBlock (const DataBlock& from) noexcept { operator = (from); }
+		DataBlock (DataBlock&& from) noexcept { operator = (from); }
 
-	size_t GetSize () const noexcept { return m_data.size (); }
-	const uint8_t* GetData (uint32_t offset = 0) const noexcept { return &m_data.data ()[offset]; }
+		DataBlock& operator = (const DataBlock& from) noexcept
+		{
+			m_data.resize (from.GetSize ());
+			std::memmove (m_data.data (), from.m_data.data (), from.GetSize ());
+			return *this;
+		}
 
-	uint8_t operator [] (int32_t offset) { return m_data.data ()[offset]; }
+		DataBlock& operator = (DataBlock&& from) noexcept
+		{
+			m_data.swap (from.m_data);
+			return *this;
+		}
 
-	void SetData (const uint8_t* dataPointer, size_t lengthOfData) noexcept
-	{
-		m_data.clear ();
-		AddData (dataPointer, lengthOfData);
-	}
+		[[nodiscard]] size_t GetSize () const noexcept { return m_data.size (); }
+		[[nodiscard]] const uint8_t* GetData (uint32_t offset = 0) const noexcept { return &m_data.data ()[offset]; }
 
-	void Clear () noexcept { m_data.clear (); }
+		[[nodiscard]] uint8_t operator [] (int32_t offset) { return m_data.data ()[offset]; }
 
-	uint8_t* ExpandBy (uint32_t numberOfBytes) noexcept
-	{
-		size_t currentSize = m_data.size ();
-		m_data.resize (currentSize + numberOfBytes);
-		return m_data.data () + currentSize;
-	}
+		void SetData (const uint8_t* dataPointer, size_t lengthOfData) noexcept
+		{
+			m_data.clear ();
+			AddData (dataPointer, lengthOfData);
+		}
 
-	void AddData (const uint8_t* dataPointer, size_t lengthOfData) noexcept
-	{
-		size_t currentSize = m_data.size ();
-		m_data.resize (currentSize + lengthOfData);
-		std::memmove (m_data.data () + currentSize, dataPointer, lengthOfData);
-	}
+		void Clear () noexcept { m_data.clear (); }
 
-	void AddString (const std::string& value) noexcept
-	{
-		AddData (reinterpret_cast<const uint8_t*>(value.c_str ()), value.length ());
-	}
+		[[nodiscard]] uint8_t* ExpandBy (uint32_t numberOfBytes) noexcept
+		{
+			size_t currentSize = m_data.size ();
+			m_data.resize (currentSize + numberOfBytes);
+			return m_data.data () + currentSize;
+		}
 
-	void AddByte (uint8_t value) noexcept
-	{
-		AddData (&value, sizeof(uint8_t));
-	}
+		void AddData (const uint8_t* dataPointer, size_t lengthOfData) noexcept
+		{
+			size_t currentSize = m_data.size ();
+			m_data.resize (currentSize + lengthOfData);
+			std::memmove (m_data.data () + currentSize, dataPointer, lengthOfData);
+		}
 
-	void AddWord (uint16_t value) noexcept
-	{
-		AddByte (value >> 8);
-		AddByte (value & 0xFF);
-	}
+		void AddString (const std::string& value) noexcept
+		{
+			AddData (reinterpret_cast<const uint8_t*>(value.c_str ()), value.length ());
+		}
 
-protected:
+		void AddByte (uint8_t value) noexcept
+		{
+			AddData (&value, sizeof(uint8_t));
+		}
 
-	std::vector<uint8_t> m_data;
-};
+		void AddWord (uint16_t value) noexcept
+		{
+			AddByte (value >> 8);
+			AddByte (value & 0xFF);
+		}
+
+	protected:
+
+		std::vector<uint8_t> m_data;
+	};
+}
 
 #endif

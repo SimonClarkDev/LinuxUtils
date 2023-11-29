@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13.0)
-project(libLinuxUtils VERSION 0.1.0)
+project(LinuxUtils VERSION 0.1.0)
 
 add_subdirectory(Source/)
 

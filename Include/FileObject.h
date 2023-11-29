@@ -27,76 +27,81 @@
 #include <fcntl.h>
 #include <string>
 
-///////////////////////////////////////////////////////////////////////////////
-/// <summary>
-/// Core file based object class
-/// </summary>
+////////////////////////////////////////////////////////////////////////////////
+///
 
-class FileObject
+namespace spc
 {
-public:
+	////////////////////////////////////////////////////////////////////////////
+	/// <summary>
+	/// Core file based object class
+	/// </summary>
 
-	FileObject () noexcept;
-	virtual ~FileObject () noexcept;
-
-	FileObject (const FileObject& from)
+	class FileObject
 	{
-		operator = (from);
-	}
-	FileObject (FileObject&& from)
+	public:
+
+		FileObject () noexcept;
+		virtual ~FileObject () noexcept;
+
+		FileObject (const FileObject& from)
+		{
+			operator = (from);
+		}
+		FileObject (FileObject&& from)
+		{
+			operator = (from);
+		}
+		FileObject& operator = (const FileObject& from)
+		{
+			m_handleId = from.m_handleId;
+			m_pathName = from.m_pathName;
+			return *this;
+		}
+		FileObject& operator = (FileObject&& from)
+		{
+			m_handleId = from.m_handleId;
+			m_pathName = from.m_pathName;
+			from.m_handleId = INVALID_HANDLE_VALUE;
+			from.m_pathName = "";
+			return *this;
+		}
+
+		[[nodiscard]] bool IsOpen () const noexcept {return m_handleId != INVALID_HANDLE_VALUE;}
+		[[nodiscard]] bool Create (const std::string& pathName, mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH) noexcept;
+		[[nodiscard]] bool Open (const std::string& pathName, bool appendOnly = false) noexcept;
+		[[nodiscard]] bool Write (const uint8_t* pBuffer, size_t length) const noexcept;
+		[[nodiscard]] size_t Read (uint8_t* pBuffer, size_t length) noexcept;
+		[[nodiscard]] bool SeekEnd () noexcept;
+		void Close () noexcept;
+
+	protected:
+
+		static constexpr int32_t	INVALID_HANDLE_VALUE = -1;
+
+		std::string		m_pathName;
+		int32_t			m_handleId;
+	};
+
+	////////////////////////////////////////////////////////////////////////////
+	/// <summary>
+	/// ASCII file based object class
+	/// </summary>
+
+	class ASCIIFileObject : public FileObject
 	{
-		operator = (from);
-	}
-	FileObject& operator = (const FileObject& from)
-	{
-		m_handleId = from.m_handleId;
-		m_pathName = from.m_pathName;
-		return *this;
-	}
-	FileObject& operator = (FileObject&& from)
-	{
-		m_handleId = from.m_handleId;
-		m_pathName = from.m_pathName;
-		from.m_handleId = INVALID_HANDLE_VALUE;
-		from.m_pathName = "";
-		return *this;
-	}
+	public:
 
-	bool IsOpen () const noexcept {return m_handleId != INVALID_HANDLE_VALUE;}
-	bool Create (const std::string& pathName, mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH) noexcept;
-	bool Open (const std::string& pathName, bool appendOnly = false) noexcept;
-	bool Write (const uint8_t* pBuffer, size_t length) const noexcept;
-	size_t Read (uint8_t* pBuffer, size_t length) noexcept;
-	bool SeekEnd () noexcept;
-	void Close () noexcept;
+		[[nodiscard]] bool WriteString (const std::string_view& writeString) noexcept;
+		[[nodiscard]] bool WriteNewLine () noexcept;
+		[[nodiscard]] bool ReadNextLine (std::string& nextLine) noexcept;
 
-protected:
+	private:
 
-	static constexpr int32_t	INVALID_HANDLE_VALUE = -1;
-
-	std::string		m_pathName;
-	int32_t			m_handleId;
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// <summary>
-/// ASCII file based object class
-/// </summary>
-
-class ASCIIFileObject : public FileObject
-{
-public:
-
-	bool WriteString (const std::string_view& writeString) noexcept;
-	bool WriteNewLine () noexcept;
-	bool ReadNextLine (std::string& nextLine) noexcept;
-
-private:
-
-	static constexpr char CarriageReturn = '\r';
-	static constexpr char LineFeed = '\n';
-	static constexpr const char* NewLineString = "\r\n";
-};
+		static constexpr char CarriageReturn = '\r';
+		static constexpr char LineFeed = '\n';
+		static constexpr const char* NewLineString = "\r\n";
+	};
+}
 
 #endif
-

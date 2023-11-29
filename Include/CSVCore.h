@@ -30,170 +30,173 @@
 #include "Clock.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-//
+///
 
-class CSVColumn
+namespace spc
 {
-public:
-
-	enum class Type {Date, Time, Row, String, Int, Float};
-
-	CSVColumn (Type type, std::string columnName = "",
-		uint8_t width = 0, uint8_t precision = 0, bool leftJustified = false);
-	CSVColumn (const CSVColumn& from) { operator = (from); }
-
-	virtual ~CSVColumn () = default;
-
-	CSVColumn (const CSVColumn&& from) = delete;
-	CSVColumn& operator = (const CSVColumn& from);
-	CSVColumn& operator = (const CSVColumn&& from) = delete;
-
-	void Format (const std::string& text);
-	void Format (int32_t value);
-	void Format (float value);
-	void FormatFixed (uint32_t rowNumber);
-
-	double GetValueAsDouble () const noexcept;
-	float GetValueAsFloat () const noexcept;
-	int GetValueAsInt () const noexcept;
-
-	const std::string& GetValueAsText () const noexcept {return m_formattedText;}
-	const std::string& GetName () const noexcept {return m_columnName;}
-	uint8_t GetPrecision () const noexcept {return m_precision;}
-	uint8_t GetWidth () const noexcept {return m_width;}
-	Type GetType () const noexcept {return m_type;}
-
-	void SetName (const std::string& columnName) noexcept { m_columnName = columnName; }
-	void SetFormattedText (const std::string& formattedText) noexcept { m_formattedText = formattedText; }
-	void Clear () noexcept { m_formattedText.clear (); }
-
-private:
-
-	static constexpr uint32_t TEMPORARY_BUFFER_SIZE = 32;
-
-	std::string	m_columnName;
-	std::string m_formatText;
-	std::string m_formattedText;
-	uint8_t		m_precision;
-	uint8_t		m_width;
-	Type		m_type;
-};
-
-////////////////////////////////////////////////////////////////////////////////
-//
-
-class CSVColumnCollection
-{
-public:
-
-	CSVColumnCollection () : m_rowNumber (0) {}
-
-	virtual ~CSVColumnCollection () = default;
-
-	CSVColumnCollection (const CSVColumnCollection& from) = delete;
-	CSVColumnCollection (const CSVColumnCollection&& from) = delete;
-	CSVColumnCollection& operator = (const CSVColumnCollection&& from) = delete;
-
-	void AddColumn (const CSVColumn& column)
+	class CSVColumn
 	{
-		m_vecColumns.push_back (column);
-	}
+	public:
 
-	CSVColumn& GetAt (uint8_t index)
+		enum class Type {Date, Time, Row, String, Int, Float};
+
+		CSVColumn (Type type, std::string columnName = "",
+			uint8_t width = 0, uint8_t precision = 0, bool leftJustified = false);
+		CSVColumn (const CSVColumn& from) { operator = (from); }
+
+		virtual ~CSVColumn () = default;
+
+		CSVColumn (const CSVColumn&& from) = delete;
+		CSVColumn& operator = (const CSVColumn& from);
+		CSVColumn& operator = (const CSVColumn&& from) = delete;
+
+		void Format (const std::string& text);
+		void Format (int32_t value);
+		void Format (float value);
+		void FormatFixed (uint32_t rowNumber);
+
+		double GetValueAsDouble () const noexcept;
+		float GetValueAsFloat () const noexcept;
+		int GetValueAsInt () const noexcept;
+
+		const std::string& GetValueAsText () const noexcept {return m_formattedText;}
+		const std::string& GetName () const noexcept {return m_columnName;}
+		uint8_t GetPrecision () const noexcept {return m_precision;}
+		uint8_t GetWidth () const noexcept {return m_width;}
+		Type GetType () const noexcept {return m_type;}
+
+		void SetName (const std::string& columnName) noexcept { m_columnName = columnName; }
+		void SetFormattedText (const std::string& formattedText) noexcept { m_formattedText = formattedText; }
+		void Clear () noexcept { m_formattedText.clear (); }
+
+	private:
+
+		static constexpr uint32_t TEMPORARY_BUFFER_SIZE = 32;
+
+		std::string	m_columnName;
+		std::string m_formatText;
+		std::string m_formattedText;
+		uint8_t		m_precision;
+		uint8_t		m_width;
+		Type		m_type;
+	};
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	class CSVColumnCollection
 	{
-		return m_vecColumns[index];
-	}
+	public:
 
-	uint32_t Columns ()
+		CSVColumnCollection () : m_rowNumber (0) {}
+
+		virtual ~CSVColumnCollection () = default;
+
+		CSVColumnCollection (const CSVColumnCollection& from) = delete;
+		CSVColumnCollection (const CSVColumnCollection&& from) = delete;
+		CSVColumnCollection& operator = (const CSVColumnCollection&& from) = delete;
+
+		void AddColumn (const CSVColumn& column)
+		{
+			m_vecColumns.push_back (column);
+		}
+
+		CSVColumn& GetAt (uint8_t index)
+		{
+			return m_vecColumns[index];
+		}
+
+		uint32_t Columns ()
+		{
+			return m_vecColumns.size ();
+		}
+
+		void ClearAll ()
+		{
+			for (CSVColumn& item : m_vecColumns) item.Clear ();
+		}
+
+		uint32_t Length (void) { return m_vecColumns.size (); }
+
+		CSVColumn& operator [] (const uint32_t index)
+		{
+			return m_vecColumns[index];
+		}
+
+		CSVColumnCollection& operator = (const CSVColumnCollection& from)
+		{
+			m_vecColumns.clear ();
+			for (const CSVColumn& item : from.m_vecColumns) m_vecColumns.push_back(item);
+			m_rowNumber = from.m_rowNumber;
+			return *this;
+		}
+
+		void SetFixedColumns ()
+		{
+			++m_rowNumber;
+			for (CSVColumn& item : m_vecColumns)
+				item.FormatFixed (m_rowNumber);
+		}
+
+	private:
+
+		std::vector<CSVColumn>	m_vecColumns;
+		uint32_t				m_rowNumber;
+	};
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	class CSVCore
 	{
-		return m_vecColumns.size ();
-	}
+	public:
 
-	void ClearAll ()
-	{
-		for (CSVColumn& item : m_vecColumns) item.Clear ();
-	}
+		CSVCore (CSVColumnCollection& columnCollection) :
+			m_columnCollection (columnCollection)
+		{
+			ClearLine ();
+		}
 
-	uint32_t Length (void) { return m_vecColumns.size (); }
+		virtual ~CSVCore () = default;
 
-	CSVColumn& operator [] (const uint32_t index)
-	{
-		return m_vecColumns[index];
-	}
+		CSVCore (const CSVCore& from) = delete;
+		CSVCore (const CSVCore&& from) = delete;
+		CSVCore& operator = (const CSVCore& from) = delete;
+		CSVCore& operator = (const CSVCore&& from) = delete;
 
-	CSVColumnCollection& operator = (const CSVColumnCollection& from)
-	{
-		m_vecColumns.clear ();
-		for (const CSVColumn& item : from.m_vecColumns) m_vecColumns.push_back(item);
-		m_rowNumber = from.m_rowNumber;
-		return *this;
-	}
+		void SetStringAt (uint8_t index, const std::string& text)
+		{
+			if (index >= m_columnCollection.Columns ()) return;
+			m_columnCollection.GetAt (index).Format (text);
+		}
 
-	void SetFixedColumns ()
-	{
-		++m_rowNumber;
-		for (CSVColumn& item : m_vecColumns)
-			item.FormatFixed (m_rowNumber);
-	}
+		void SetIntegerAt (uint8_t index, int32_t value)
+		{
+			if (index >= m_columnCollection.Columns ()) return;
+			m_columnCollection.GetAt (index).Format (value);
+		}
 
-private:
+		void SetFloatAt (uint8_t index, float value)
+		{
+			if (index >= m_columnCollection.Columns ()) return;
+			m_columnCollection.GetAt (index).Format (value);
+		}
 
-	std::vector<CSVColumn>	m_vecColumns;
-	uint32_t				m_rowNumber;
-};
+		void SetFormattedAt (uint8_t index, const std::string& text)
+		{
+			if (index >= m_columnCollection.Columns ()) return;
+			m_columnCollection.GetAt (index).SetFormattedText (text);
+		}
 
-////////////////////////////////////////////////////////////////////////////////
-//
+	protected:
 
-class CSVCore
-{
-public:
+		void ClearLine ()
+		{
+			m_columnCollection.ClearAll ();
+		}
 
-	CSVCore (CSVColumnCollection& columnCollection) :
-		m_columnCollection (columnCollection)
-	{
-		ClearLine ();
-	}
-
-	virtual ~CSVCore () = default;
-
-	CSVCore (const CSVCore& from) = delete;
-	CSVCore (const CSVCore&& from) = delete;
-	CSVCore& operator = (const CSVCore& from) = delete;
-	CSVCore& operator = (const CSVCore&& from) = delete;
-
-	void SetStringAt (uint8_t index, const std::string& text)
-	{
-		if (index >= m_columnCollection.Columns ()) return;
-		m_columnCollection.GetAt (index).Format (text);
-	}
-
-	void SetIntegerAt (uint8_t index, int32_t value)
-	{
-		if (index >= m_columnCollection.Columns ()) return;
-		m_columnCollection.GetAt (index).Format (value);
-	}
-
-	void SetFloatAt (uint8_t index, float value)
-	{
-		if (index >= m_columnCollection.Columns ()) return;
-		m_columnCollection.GetAt (index).Format (value);
-	}
-
-	void SetFormattedAt (uint8_t index, const std::string& text)
-	{
-		if (index >= m_columnCollection.Columns ()) return;
-		m_columnCollection.GetAt (index).SetFormattedText (text);
-	}
-
-protected:
-
-	void ClearLine ()
-	{
-		m_columnCollection.ClearAll ();
-	}
-
-	CSVColumnCollection& m_columnCollection;
-};
+		CSVColumnCollection& m_columnCollection;
+	};
+}
 
 #endif

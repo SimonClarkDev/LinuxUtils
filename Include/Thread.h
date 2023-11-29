@@ -29,69 +29,100 @@
 #include <mutex>
 
 /////////////////////////////////////////////////////////////////////////////////
-//
+///
 
-class Thread
+namespace spc
 {
-public:
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-	static constexpr uint32_t StoppingWaitus = 100;
+	class Thread
+	{
+	public:
 
-	enum class TaskAction {NoWait, Wait};
+		static constexpr uint32_t StoppingWaitus = 100;
 
-	Thread (const std::string& threadName, uint32_t threadDelayus) noexcept;
-	virtual ~Thread ();
+		enum class TaskAction {NoWait, Wait};
 
-	Thread (const Thread& from) = delete;
-	Thread (Thread&& from) = delete;
-	Thread& operator = (Thread&& from) = delete;
-	Thread& operator = (const Thread& from) = delete;
+		Thread (const std::string& threadName, uint32_t threadDelayus) noexcept;
+		virtual ~Thread ();
 
-	void StartExecution ();
-	void StopExecution ();
+		Thread (const Thread& from) = delete;
+		Thread (Thread&& from) = delete;
+		Thread& operator = (Thread&& from) = delete;
+		Thread& operator = (const Thread& from) = delete;
 
-	static void Sleep (uint32_t delayms) noexcept;
-	virtual void ThreadStart () noexcept {}
-	virtual void ThreadStop () noexcept {}
-	virtual TaskAction ThreadMethod () noexcept = 0;
+		void StartExecution ();
+		void StopExecution ();
 
-protected:
+		static void Sleep (uint32_t delayms) noexcept;
+		virtual void ThreadStart () noexcept {}
+		virtual void ThreadStop () noexcept {}
+		virtual TaskAction ThreadMethod () noexcept = 0;
 
-	uint32_t	m_threadDelayus;
+	protected:
 
-private:
+		uint32_t	m_threadDelayus;
 
-	void ThreadWrapper ();
+	private:
 
-    std::thread m_thread;
-    std::string	m_threadName;
+		void ThreadWrapper ();
 
-    bool		m_running;
-	bool		m_stopped;
-};
+		std::thread m_thread;
+		std::string	m_threadName;
 
-/////////////////////////////////////////////////////////////////////////////////
-//
+		bool		m_running;
+		bool		m_stopped;
+	};
 
-class ThreadA : public Thread
-{
-public:
+	////////////////////////////////////////////////////////////////////////////
+	///
 
-	virtual TaskAction ThreadMethodA (void) noexcept = 0;
-	virtual TaskAction ThreadMethod (void) noexcept { return ThreadMethodA (); }
-};
+	class ThreadA : public Thread
+	{
+	public:
+
+		virtual TaskAction ThreadMethodA (void) noexcept = 0;
+		virtual TaskAction ThreadMethod (void) noexcept { return ThreadMethodA (); }
+	};
 
 
-/////////////////////////////////////////////////////////////////////////////////
-//
+	////////////////////////////////////////////////////////////////////////////
+	//
 
-class ThreadB : public Thread
-{
-public:
+	class ThreadB : public Thread
+	{
+	public:
 
-	virtual TaskAction ThreadMethodB (void) noexcept = 0;
-	virtual TaskAction ThreadMethod (void) noexcept { return ThreadMethodB (); }
-};
+		virtual TaskAction ThreadMethodB (void) noexcept = 0;
+		virtual TaskAction ThreadMethod (void) noexcept { return ThreadMethodB (); }
+	};
+
+	////////////////////////////////////////////////////////////////////////////
+	//
+
+	class AutoLock
+	{
+		std::mutex& m_autoMutex;
+
+	public:
+
+		AutoLock (std::mutex& autoMutex) : m_autoMutex (autoMutex)
+		{
+			autoMutex.lock ();
+		}
+		virtual ~AutoLock ()
+		{
+			m_autoMutex.unlock ();
+		}
+
+		AutoLock () = delete;
+		AutoLock (const AutoLock& from) = delete;
+		AutoLock (AutoLock&& from) = delete;
+		AutoLock& operator = (const AutoLock& from) = delete;
+		AutoLock& operator = (AutoLock&& from) = delete;
+	};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 //
