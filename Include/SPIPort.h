@@ -33,7 +33,7 @@ namespace spc
 {
 	////////////////////////////////////////////////////////////////////////////
 	/// <summary>
-	/// I2C port wrapper class
+	/// SPI port wrapper class
 	/// </summary>
 
 	class SPIPort : public FileObject
@@ -49,9 +49,8 @@ namespace spc
 		SPIPort (SPIPort&& from) = default;
 		SPIPort& operator = (const SPIPort& from) = default;
 		SPIPort& operator = (SPIPort&& from) = default;
-
+        
 		[[nodiscard]] bool Initialise (uint32_t speedInHz = 1000000, SPIPort::Mode mode = SPIPort::Mode::MODE_1, uint32_t bitPerWord = 8) noexcept;
-
 		[[nodiscard]] bool Open (const std::string& pathName) noexcept;
 		[[nodiscard]] bool Write (const uint8_t* pBuffer, size_t length) noexcept;
 		[[nodiscard]] size_t Read (uint8_t* pBuffer, size_t length) noexcept;
@@ -59,7 +58,7 @@ namespace spc
 	private:
 
 		static constexpr uint32_t MAX_BUFFER_SIZE = 16;
-
+        
 		uint8_t m_recvBuffer[MAX_BUFFER_SIZE];
 	};
 }

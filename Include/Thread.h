@@ -124,4 +124,29 @@ namespace spc
 	};
 }
 
+/////////////////////////////////////////////////////////////////////////////////
+//
+
+class AutoLock
+{
+	std::mutex& m_autoMutex;
+
+public:
+
+	AutoLock (std::mutex& autoMutex) : m_autoMutex (autoMutex)
+	{
+		autoMutex.lock ();
+	}
+	virtual ~AutoLock ()
+	{
+		m_autoMutex.unlock ();
+	}
+
+	AutoLock () = delete;
+	AutoLock (const AutoLock& from) = delete;
+	AutoLock (AutoLock&& from) = delete;
+	AutoLock& operator = (const AutoLock& from) = delete;
+	AutoLock& operator = (AutoLock&& from) = delete;
+};
+
 #endif

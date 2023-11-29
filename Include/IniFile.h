@@ -136,7 +136,6 @@ namespace spc
 
 		void AddSection (const IniSection& newSection);
 		[[nodiscard]] bool ReadIniFile (const std::string& path);
-
 		[[nodiscard]] std::string GetItemValueAsString (const std::string& sectionName, const std::string& entryName, const std::string& defaultValue = "") const noexcept;
 		[[nodiscard]] int32_t GetItemValueAsInt (const std::string& sectionName, const std::string& entryName, int32_t defaultValue = 0) const noexcept;
 		[[nodiscard]] bool GetItemValueAsTime (const std::string& sectionName, const std::string& entryName, uint8_t& hours, uint8_t& minutes, uint8_t& seconds) const noexcept;
