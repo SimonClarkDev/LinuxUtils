@@ -187,29 +187,25 @@ namespace spc
 
 	bool ASCIIFileObject::ReadNextLine (std::string& nextLine) noexcept
     {
-	    while (Read (&nextByte, 1) != 0)
-	    {
-		    uint8_t nextByte = 0;
+		nextLine.clear ();
+		uint8_t nextByte = 0;
 
-		    nextLine.clear ();
+		while (Read (&nextByte, 1) != 0)
+		{
+			if (nextByte == CarriageReturn || nextByte == LineFeed)
+			{
+				if (!nextLine.empty ())
+				{
+					return true;
+				}
+			}
+			else
+			{
+				nextLine += static_cast<char>(nextByte);
+			}
+		}
 
-		    while (Read (&nextByte, 1) != 0)
-		    {
-			    if (nextByte == CarriageReturn || nextByte == LineFeed)
-			    {
-				    if (!nextLine.empty ())
-				    {
-					    return true;
-				    }
-			    }
-			    else
-			    {
-				    nextLine += static_cast<char>(nextByte);
-			    }
-		    }
-
-		    return false;
-        }
+		return false;
 	}
 
 	////////////////////////////////////////////////////////////////////////////
