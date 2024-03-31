@@ -34,6 +34,7 @@
 
 namespace spc
 {
+	template <typename T>
 	struct DataBlock
 	{
 		DataBlock () = default;
@@ -56,11 +57,28 @@ namespace spc
 		}
 
 		[[nodiscard]] size_t GetSize () const noexcept { return m_data.size (); }
-		[[nodiscard]] const uint8_t* GetData (uint32_t offset = 0) const noexcept { return &m_data.data ()[offset]; }
+		[[nodiscard]] const T* GetDataAt (size_t offset = 0) const noexcept { return &m_data.data ()[offset]; }
+		[[nodiscard]] T* GetDataPointer () const noexcept { return const_cast<T*>(m_data.data ()); }
+		[[nodiscard]] const std::vector<T> GetData () const noexcept { return m_data; }
 
-		[[nodiscard]] uint8_t operator [] (int32_t offset) { return m_data.data ()[offset]; }
+		[[nodiscard]] T operator [] (int32_t offset) { return m_data.data ()[offset]; }
 
-		void SetData (const uint8_t* dataPointer, size_t lengthOfData) noexcept
+		bool SetSize (size_t newSize) noexcept
+		{
+			try
+			{
+				m_data.reserve (newSize);
+				m_data.clear ();
+			}
+			catch(const std::exception&)
+			{
+				return false;
+			}
+
+			return true;
+		}
+
+		void SetData (const T* dataPointer, size_t lengthOfData) noexcept
 		{
 			m_data.clear ();
 			AddData (dataPointer, lengthOfData);
@@ -68,19 +86,32 @@ namespace spc
 
 		void Clear () noexcept { m_data.clear (); }
 
-		[[nodiscard]] uint8_t* ExpandBy (uint32_t numberOfBytes) noexcept
+		[[nodiscard]] T* ExpandBy (uint32_t numberOfElements) noexcept
 		{
 			size_t currentSize = m_data.size ();
-			m_data.resize (currentSize + numberOfBytes);
+			m_data.resize (currentSize + numberOfElements);
 			return m_data.data () + currentSize;
 		}
 
-		void AddData (const uint8_t* dataPointer, size_t lengthOfData) noexcept
+		void AddData (const T* dataPointer, size_t lengthOfData) noexcept
 		{
 			size_t currentSize = m_data.size ();
 			m_data.resize (currentSize + lengthOfData);
 			std::memmove (m_data.data () + currentSize, dataPointer, lengthOfData);
 		}
+
+	protected:
+
+		std::vector<T> m_data;
+	};
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	struct ByteBlock : protected DataBlock<uint8_t>
+	{
+		ByteBlock () = default;
+		virtual ~ByteBlock () = default;
 
 		void AddString (const std::string& value) noexcept
 		{
@@ -97,10 +128,6 @@ namespace spc
 			AddByte (value >> 8);
 			AddByte (value & 0xFF);
 		}
-
-	protected:
-
-		std::vector<uint8_t> m_data;
 	};
 }
 
