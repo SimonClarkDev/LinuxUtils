@@ -37,7 +37,6 @@ namespace spc
 	Clock::Clock () :
 		m_clock (time_t {}),
 		m_tm (tm {})
-
 	{
 	}
 
@@ -158,6 +157,14 @@ namespace spc
 		return (static_cast<uint32_t>(GetHoursValue ()) * 60 * 60) +
 			(static_cast<uint32_t>(GetMinutesValue ()) * 60) +
 			static_cast<uint32_t>(GetSecondsValue ());
+	}
+
+	////////////////////////////////////////////////////////////////////////////////
+	///
+
+	uint8_t Clock::GetDayOfWeek () const noexcept
+	{
+		return m_tm.tm_wday;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////

@@ -84,6 +84,7 @@ namespace spc
 		[[nodiscard]] std::string GetASCIIDate (const char separator = '/') const noexcept;
 		[[nodiscard]] std::string GetASCIIYear () const noexcept;
 		[[nodiscard]] std::string GetASCIIShortMonth () const noexcept;
+		[[nodiscard]] uint8_t GetDayOfWeek () const noexcept;
 		[[nodiscard]] uint32_t ElapsedSeconds () const noexcept;
 		[[nodiscard]] static std::string GetASCIICounter (uint32_t seconds);
 		[[nodiscard]] uint32_t GetSecondsToday () const noexcept;
