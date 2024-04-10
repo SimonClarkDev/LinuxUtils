@@ -64,7 +64,8 @@ namespace spc
 			return *this;
 		}
 
-		[[nodiscard]] static bool IsNumeric (const std::string& value) noexcept;
+		[[nodiscard]] static bool IsInt (const std::string& value) noexcept;
+		[[nodiscard]] static bool IsFloat (const std::string& value) noexcept;
 
 		[[nodiscard]] std::string GetName () const noexcept { return m_name; }
 		[[nodiscard]] std::string GetValue () const noexcept { return m_value; }
@@ -103,10 +104,13 @@ namespace spc
 			m_vectorOfItems.push_back (iniItem);
 		}
 
-		void SetItemValue (const std::string& name, const std::string& value) noexcept;
+		[[nodiscard]] const std::vector<IniItem> GetItems () const noexcept { return m_vectorOfItems; }
+
+		[[nodiscard]] bool SetItemValue (const std::string& name, const std::string& value) noexcept;
 		[[nodiscard]] bool GetItemValueAsString (const std::string& name, std::string& result) const noexcept;
 		[[nodiscard]] bool GetItemValueAsTime (const std::string& name, uint8_t& hours, uint8_t& minutes, uint8_t& seconds) const noexcept;
 		[[nodiscard]] bool GetItemValueAsInt (const std::string &name, int32_t& result) const noexcept;
+		[[nodiscard]] bool GetItemValueAsFloat (const std::string &name, float& result) const noexcept;
 
 		[[nodiscard]] std::string GetSectionName () const noexcept { return m_sectionName; }
 
@@ -135,10 +139,14 @@ namespace spc
 		IniFile& operator = (const IniFile& from) = delete;
 
 		void AddSection (const IniSection& newSection);
+		[[nodiscard]] bool WriteIniFile (const std::string& path);
 		[[nodiscard]] bool ReadIniFile (const std::string& path);
 		[[nodiscard]] std::string GetItemValueAsString (const std::string& sectionName, const std::string& entryName, const std::string& defaultValue = "") const noexcept;
 		[[nodiscard]] int32_t GetItemValueAsInt (const std::string& sectionName, const std::string& entryName, int32_t defaultValue = 0) const noexcept;
+		[[nodiscard]] float GetItemValueAsFloat (const std::string& sectionName, const std::string& entryName, float defaultValue = 0.0f) const noexcept;
 		[[nodiscard]] bool GetItemValueAsTime (const std::string& sectionName, const std::string& entryName, uint8_t& hours, uint8_t& minutes, uint8_t& seconds) const noexcept;
+
+		void SetItemValue (const std::string& sectionName, const std::string& entryName, const std::string& value) noexcept;
 
 	private:
 
@@ -150,6 +158,7 @@ namespace spc
 
 		std::vector<IniSection> m_vectorOfSections;
 		IniSection* m_currentSection;
+		bool m_modified;
 	};
 }
 
