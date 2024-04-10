@@ -25,6 +25,7 @@
 #include "FileObject.h"
 
 #include <algorithm>
+#include <sstream>
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
@@ -35,7 +36,8 @@ namespace spc
 	///
 
 	IniFile::IniFile () :
-		m_currentSection (nullptr)
+		m_currentSection (nullptr),
+		m_modified (false)
 	{
 	}
 
@@ -45,6 +47,7 @@ namespace spc
 	void IniFile::AddSection (const IniSection& newSection)
 	{
 		m_vectorOfSections.push_back (newSection);
+		m_modified = true;
 	}
 
 	////////////////////////////////////////////////////////////////////////////
@@ -58,6 +61,26 @@ namespace spc
 			{
 				int32_t foundValue;
 				if (nextSection.GetItemValueAsInt (entryName, foundValue))
+				{
+					return foundValue;
+				}
+			}
+		}
+
+		return defaultValue;
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	float IniFile::GetItemValueAsFloat (const std::string& sectionName, const std::string& entryName, float defaultValue) const noexcept
+	{
+		for (const IniSection& nextSection : m_vectorOfSections)
+		{
+			if (nextSection.GetSectionName () == sectionName)
+			{
+				float foundValue;
+				if (nextSection.GetItemValueAsFloat (entryName, foundValue))
 				{
 					return foundValue;
 				}
@@ -106,6 +129,26 @@ namespace spc
 	////////////////////////////////////////////////////////////////////////////
 	///
 
+	void IniFile::SetItemValue (const std::string& sectionName, const std::string& entryName, const std::string& value) noexcept
+	{
+		for (IniSection& nextSection : m_vectorOfSections)
+		{
+			if (nextSection.GetSectionName () == sectionName)
+			{
+				if (nextSection.SetItemValue (entryName, value))
+				{
+					m_modified = true;
+				}
+				return;
+            }
+		}
+
+		// TODO: Create new section and add to that (recursive call?)
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
 	bool IniFile::ReadIniFile (const std::string& path)
 	{
 		ASCIIFileObject iniFile;
@@ -119,6 +162,41 @@ namespace spc
 			ParseNextLine (nextLine);
 		}
 
+		m_modified = false;
+		return true;
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	///
+
+	bool IniFile::WriteIniFile (const std::string& path)
+	{
+		ASCIIFileObject iniFile;
+
+		if (!m_modified) return true;
+		if (!iniFile.Create (path)) return false;
+
+		for (IniSection& section : m_vectorOfSections)
+		{
+			std::stringstream ssSectionTitle;
+
+			ssSectionTitle << '[' << section.GetSectionName ().c_str () << ']' << std::endl;
+
+			if (!iniFile.WriteString (ssSectionTitle.str ())) return false;
+
+			const std::vector<IniItem> items = section.GetItems();
+
+			for (const IniItem& item : items)
+			{
+				std::stringstream ssItem;
+
+				ssItem << item.GetName ().c_str () << " = " << item.GetValue().c_str () << std::endl;
+
+				if (!iniFile.WriteString (ssItem.str ())) return false;
+			}
+		}
+
+		m_modified = false;
 		return true;
 	}
 
@@ -156,23 +234,31 @@ namespace spc
 			std::string entryName = line.substr (0, position);
 			std::string entryValue = line.substr (position + 1, line.length () - 1);
 
-			m_currentSection->SetItemValue (entryName,  entryValue);
+			if (m_currentSection->SetItemValue (entryName,  entryValue))
+			{
+				m_modified = true;
+			}
 		}
 	}
 
 	////////////////////////////////////////////////////////////////////////////
 	///
 
-	void IniSection::SetItemValue (const std::string& name, const std::string& value) noexcept
+	bool IniSection::SetItemValue (const std::string& name, const std::string& value) noexcept
 	{
 		for (IniItem& item : m_vectorOfItems)
 		{
 			if (item.GetName () == name)
 			{
-				item = IniItem (name, value);
-				return;
+				if (item.GetValue() != value)
+				{
+					item = IniItem (name, value);
+					return true;
+				}
 			}
 		}
+
+		return false;
 	}
 
 	////////////////////////////////////////////////////////////////////////////
@@ -200,8 +286,24 @@ namespace spc
 	    std::string value;
 	    if (GetItemValueAsString (name, value))
 	    {
-		    if (!IniItem::IsNumeric (value)) return false;
-		        result = static_cast<int32_t>(std::stoi (value));
+		    if (!IniItem::IsInt (value)) return false;
+		    result = static_cast<int32_t>(std::stoi (value));
+		    return true;
+	    }
+
+	    return false;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    ///
+
+    bool IniSection::GetItemValueAsFloat (const std::string &name, float& result) const noexcept
+    {
+	    std::string value;
+	    if (GetItemValueAsString (name, value))
+	    {
+		    if (!IniItem::IsFloat (value)) return false;
+		    result = std::stof (value);
 		    return true;
 	    }
 
@@ -225,9 +327,9 @@ namespace spc
 	    std::string asciiMinutes = asciiTime.substr (3, 2);
 	    std::string asciiSeconds = asciiTime.substr (6, 2);
 
-	    if (!IniItem::IsNumeric(asciiHours)) return false;
-	    if (!IniItem::IsNumeric(asciiMinutes)) return false;
-	    if (!IniItem::IsNumeric(asciiSeconds)) return false;
+	    if (!IniItem::IsInt (asciiHours)) return false;
+	    if (!IniItem::IsInt (asciiMinutes)) return false;
+	    if (!IniItem::IsInt (asciiSeconds)) return false;
 
 	    hours = static_cast<uint8_t>(std::stoi (asciiHours));
 	    minutes = static_cast<uint8_t>(std::stoi (asciiMinutes));
@@ -239,10 +341,25 @@ namespace spc
     ///////////////////////////////////////////////////////////////////////////
     ///
 
-	bool IniItem::IsNumeric (const std::string& value) noexcept
+	bool IniItem::IsInt (const std::string& value) noexcept
 	{
 		for (char const &character : value)
+		{
 			if (!std::isdigit (character)) return false;
+		}
+		return true;
+	}
+
+
+    ///////////////////////////////////////////////////////////////////////////
+    ///
+
+	bool IniItem::IsFloat (const std::string& value) noexcept
+	{
+		for (char const &character : value)
+		{
+			if (!std::isdigit (character) && character != '.') return false;
+		}
 		return true;
 	}
 }
